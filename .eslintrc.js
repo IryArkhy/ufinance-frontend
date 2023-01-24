@@ -1,13 +1,39 @@
 module.exports = {
   env: {
-    node: true,
+    browser: true,
   },
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended',
+    'plugin:@typescript-eslint/recommended',
+  ],
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'plugin:@typescript-eslint/recommended-requiring-type-checking',],
+  plugins: [
+    'react',
+    '@typescript-eslint',
+    'prettier',
+    // '@typescript-eslint/recommended-requiring-type-checking',
+  ],
   root: true,
   parserOptions: {
-    tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json'],
-  }
+    ecmaFeatures: {
+      jsx: true,
+    },
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    // tsconfigRootDir: __dirname,
+    // project: ['./tsconfig.json'],
+  },
+  rules: {
+    'react/react-in-jsx-scope': 'off',
+    camelcase: 'error',
+    'spaced-comment': 'error',
+    quotes: ['error', 'single'],
+    'no-duplicate-imports': 'error',
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {},
+    },
+  },
 };
