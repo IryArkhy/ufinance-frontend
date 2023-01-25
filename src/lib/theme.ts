@@ -4,7 +4,7 @@ export const theme = createTheme({
   components: {
     MuiDrawer: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        paper: ({ theme }) => ({
           backgroundColor: theme.palette.primary.main,
         }),
       },
