@@ -1,6 +1,7 @@
 module.exports = {
   env: {
     browser: true,
+    node: true,
   },
   extends: [
     'eslint:recommended',
@@ -8,12 +9,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
   ],
   parser: '@typescript-eslint/parser',
-  plugins: [
-    'react',
-    '@typescript-eslint',
-    'prettier',
-    // '@typescript-eslint/recommended-requiring-type-checking',
-  ],
+  plugins: ['react', '@typescript-eslint', 'prettier'],
   root: true,
   parserOptions: {
     ecmaFeatures: {
@@ -21,14 +17,11 @@ module.exports = {
     },
     ecmaVersion: 'latest',
     sourceType: 'module',
-    // tsconfigRootDir: __dirname,
-    // project: ['./tsconfig.json'],
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
     camelcase: 'error',
     'spaced-comment': 'error',
-    quotes: ['error', 'single'],
     'no-duplicate-imports': 'error',
   },
   settings: {

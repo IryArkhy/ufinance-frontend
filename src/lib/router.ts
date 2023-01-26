@@ -10,4 +10,7 @@ export const ROUTES = {
     },
   },
   USER_ACCOUNT: '/profile',
+  ACCOUNTS: '/accounts',
+  SETTINGS: '/settings',
+  SUPPORT: '/support',
 };

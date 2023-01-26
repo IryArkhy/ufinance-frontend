@@ -23,7 +23,11 @@ import { useNavigate } from 'react-router-dom';
 
 import { ReactComponent as LoginPicture } from '../../assets/login-pic.svg';
 import { ReactComponent as Logo } from '../../assets/logo-no-background.svg';
+import { ErrorData } from '../../lib/api/utils';
 import { NotificationContext } from '../../lib/notifications';
+import { ROUTES } from '../../lib/router';
+import { useDispatch } from '../../redux/hooks';
+import { login, signUp } from '../../redux/user/thunks';
 
 type LoginFormValues = {
   email: string;
@@ -39,6 +43,7 @@ type SignUpFormValues = {
 export function Authentication() {
   const { palette } = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [mode, setMode] = React.useState('login');
 
@@ -77,28 +82,26 @@ export function Authentication() {
   };
 
   const handleLogin = async (values: LoginFormValues) => {
-    console.log('Login');
-    // setIsLoading(true);
-    // const resultAction = await dispatch(login({ email: values.email, password: values.password }));
-    // setIsLoading(false);
+    setIsLoading(true);
+    const resultAction = await dispatch(login({ email: values.email, password: values.password }));
+    setIsLoading(false);
 
-    // if (resultAction.meta.requestStatus === 'rejected') {
-    //   notifyError((resultAction.payload as ErrorData).message);
-    // } else {
-    //   navigate(ROUTES.BOOKS_LIST);
-    // }
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      navigate(ROUTES.DASHBOARD);
+    }
   };
 
   const handleSignUp = async ({ email, username, password }: SignUpFormValues) => {
-    console.log('Sign Up');
-    // setIsLoading(true);
-    // const resultAction = await dispatch(signUp({ email, username, password }));
-    // setIsLoading(false);
-    // if (resultAction.meta.requestStatus === 'rejected') {
-    //   notifyError((resultAction.payload as ErrorData).message);
-    // } else {
-    //   navigate(ROUTES.BOOKS_LIST);
-    // }
+    setIsLoading(true);
+    const resultAction = await dispatch(signUp({ email, username, password }));
+    setIsLoading(false);
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      navigate(ROUTES.DASHBOARD);
+    }
   };
 
   return (
