@@ -21,11 +21,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ReactComponent as Logo } from '../../assets/logo-no-background.svg';
 import { ROUTES } from '../../lib/router';
+import { useDispatch } from '../../redux/hooks';
+import { clearUser } from '../../redux/user/userSlice';
 
 export function NavigationSidebar() {
   const { palette } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const firstLevelItems = [
     {
@@ -55,11 +58,15 @@ export function NavigationSidebar() {
     },
   ];
 
+  const handleLogout = () => {
+    dispatch(clearUser());
+  };
+
   const secondLevelItems = [
     {
       title: 'Вийти',
       Icon: LogoutRoundedIcon,
-      navigateTo: '/',
+      action: handleLogout,
     },
   ];
 
@@ -108,9 +115,9 @@ export function NavigationSidebar() {
         </List>
         <Divider sx={{ borderColor: palette.grey[700] }} />
         <List>
-          {secondLevelItems.map(({ title, Icon }) => (
+          {secondLevelItems.map(({ title, Icon, action }) => (
             <ListItem key={title} disablePadding>
-              <ListItemButton>
+              <ListItemButton onClick={action}>
                 <ListItemIcon>
                   <Icon
                     fontSize="small"

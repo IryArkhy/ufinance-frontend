@@ -40,7 +40,7 @@ type SignUpFormValues = {
   password: string;
 };
 
-export function Authentication() {
+export function AuthenticationView() {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();

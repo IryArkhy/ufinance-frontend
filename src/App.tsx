@@ -13,7 +13,14 @@ import NotificationProvider from './lib/notifications';
 import { ROUTES } from './lib/router';
 import { ProtectedRoute } from './lib/router-dom';
 import { theme } from './lib/theme';
-import { Authentication, Dashboard } from './pages';
+import {
+  AccountsView,
+  AuthenticationView,
+  DashboardView,
+  ProfileView,
+  SettingsView,
+  SupportView,
+} from './pages';
 import { useSelector } from './redux/hooks';
 import { persistor, store } from './redux/store';
 import { getToken } from './redux/user/selectors';
@@ -26,12 +33,44 @@ function Router() {
       <NavigationSidebar />
       <Routes>
         <Route path={ROUTES.BASE} element={<Navigate to={ROUTES.DASHBOARD} />} />
-        <Route path={ROUTES.AUTH} element={<Authentication />} />
+        <Route path={ROUTES.AUTH} element={<AuthenticationView />} />
         <Route
           path={ROUTES.DASHBOARD}
           element={
             <ProtectedRoute token={token}>
-              <Dashboard />
+              <DashboardView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.USER_ACCOUNT}
+          element={
+            <ProtectedRoute token={token}>
+              <ProfileView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.ACCOUNTS}
+          element={
+            <ProtectedRoute token={token}>
+              <AccountsView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SUPPORT}
+          element={
+            <ProtectedRoute token={token}>
+              <SupportView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.SETTINGS}
+          element={
+            <ProtectedRoute token={token}>
+              <SettingsView />
             </ProtectedRoute>
           }
         />

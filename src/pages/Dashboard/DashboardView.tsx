@@ -2,14 +2,12 @@
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import {
-  Avatar,
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
   Divider,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -20,19 +18,13 @@ import Chart from 'react-apexcharts';
 
 import Deposit from '../../assets/deposit.png';
 import MoneyBag from '../../assets/money-bag.png';
-import UkrFlag from '../../assets/ukraine.png';
 import Withdrawal from '../../assets/withdrawal.png';
-import { stringAvatar } from '../../lib/avatar';
-import { useSelector } from '../../redux/hooks';
-import { getUser } from '../../redux/user/selectors';
+import { PageWrapper, Toolbar } from '../../components';
 
 import { InsightsCard } from './components';
 
-export function Dashboard() {
-  const user = useSelector(getUser);
+export function DashboardView() {
   const { palette } = useTheme();
-
-  const avatarProps = stringAvatar(user!.username);
 
   const chartOption: ApexOptions = {
     chart: {
@@ -64,8 +56,6 @@ export function Dashboard() {
   const donutChartOptions = {
     labels: ['Apple', 'Mango', 'Orange', 'Watermelon'],
   };
-
-  const balance = 10000;
 
   const transactions = [
     {
@@ -140,33 +130,9 @@ export function Dashboard() {
   ];
 
   return (
-    <Box
-      sx={{
-        width: { sm: `calc(100% - ${250}px)` },
-        ml: { sm: `${250}px` },
-        px: 5,
-        pb: 5,
-      }}
-    >
-      <Box mb={5} display="flex" justifyContent="flex-end" py={2}>
-        <Box display="flex" alignItems="center" gap={3}>
-          <img src={UkrFlag} style={{ width: '30px' }} />
-          <Tooltip title="Total balance">
-            <Typography
-              variant="body2"
-              fontWeight="600"
-              color={balance > 0 ? palette.success.light : palette.error.main}
-            >
-              {balance} UAH
-            </Typography>
-          </Tooltip>
-          <Box p="3px" border={`1px solid ${palette.grey[200]}`} borderRadius="50%">
-            <Avatar sx={{ ...avatarProps.sx, width: 35, height: 35 }}>
-              {avatarProps.children}
-            </Avatar>
-          </Box>
-        </Box>
-      </Box>
+    <PageWrapper>
+      <Toolbar />
+
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4" fontWeight={600}>
           Overview this months
@@ -236,12 +202,6 @@ export function Dashboard() {
         </Card>
       </Box>
       <Box>
-        {/* <Box display="flex" gap={2} alignItems="center" mb={3}>
-          <Typography variant="h6">Transactions History</Typography>
-          <Tooltip title="Last 7 days" color="action">
-            <InfoRounded />
-          </Tooltip>
-        </Box> */}
         <Card sx={{ width: '100%' }}>
           <CardHeader
             title={<Typography variant="h6">Transactions History</Typography>}
@@ -286,6 +246,6 @@ export function Dashboard() {
           </Box>
         </Card>
       </Box>
-    </Box>
+    </PageWrapper>
   );
 }
