@@ -1,81 +1,12 @@
-import { ExpandMoreRounded } from '@mui/icons-material';
-import AccountBalanceRoundedIcon from '@mui/icons-material/AccountBalanceRounded';
-import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import AddRounded from '@mui/icons-material/AddRounded';
-import AttachMoneyRoundedIcon from '@mui/icons-material/AttachMoneyRounded';
-import CardTravelRoundedIcon from '@mui/icons-material/CardTravelRounded';
-import CurrencyBitcoinRoundedIcon from '@mui/icons-material/CurrencyBitcoinRounded';
-import EuroRoundedIcon from '@mui/icons-material/EuroRounded';
-import MonetizationOnRoundedIcon from '@mui/icons-material/MonetizationOnRounded';
-import MoneyRoundedIcon from '@mui/icons-material/MoneyRounded';
-import PaymentRoundedIcon from '@mui/icons-material/PaymentRounded';
-import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
-import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
-import ShoppingBasketRoundedIcon from '@mui/icons-material/ShoppingBasketRounded';
-import { Box, Button, Card, CardContent, Divider, Typography } from '@mui/material';
-import { format } from 'date-fns';
+import { LoadingButton } from '@mui/lab';
+import { Box, Button, Typography } from '@mui/material';
 import React from 'react';
 
 import { PageWrapper, Toolbar } from '../../components';
 
-const ACCOUNT_ICONS = {
-  BANK: {
-    Icon: AccountBalanceRoundedIcon,
-    color: '#00425A',
-  },
-  CARD: {
-    Icon: PaymentRoundedIcon,
-    color: '#F48484',
-  },
-  MONEY: {
-    Icon: MonetizationOnRoundedIcon,
-    color: '#FC7300',
-  },
-  BILL: {
-    Icon: MoneyRoundedIcon,
-    color: '#1F8A70',
-  },
-  SAVINGS: {
-    Icon: SavingsRoundedIcon,
-    color: '#EBC7E6',
-  },
-  WALLET: {
-    Icon: AccountBalanceWalletRoundedIcon,
-    color: '#BFDB38',
-  },
-  USD: {
-    Icon: AttachMoneyRoundedIcon,
-    color: '#84D2C5',
-  },
-  EUR: {
-    Icon: EuroRoundedIcon,
-    color: '#B05A7A',
-  },
-  BTC: {
-    Icon: CurrencyBitcoinRoundedIcon,
-    color: '#FEBE8C',
-  },
-  PAYMENTS: {
-    Icon: PaymentsRoundedIcon,
-    color: '#F7A4A4',
-  },
-  SHOPPING: {
-    Icon: ShoppingBasketRoundedIcon,
-    color: '#E3ACF9',
-  },
-  TRAVEL: {
-    Icon: CardTravelRoundedIcon,
-    color: '#FBC252',
-  },
-};
-type Account = {
-  id: string;
-  name: string;
-  balance: number;
-  currency: string;
-  icon: string;
-  isCredit: boolean;
-};
+import { AccountCard, TransactionCard } from './components';
+import { Account, Transaction } from './types';
 
 const accounts: Account[] = [
   {
@@ -135,7 +66,7 @@ export function AccountsView() {
     setSelectedAccount(account);
   };
 
-  const transactions = [
+  const transactions: Transaction[] = [
     {
       id: 1,
       amount: 100,
@@ -193,93 +124,25 @@ export function AccountsView() {
           </Button>
         </Box>
         <Box display="flex" flexWrap="wrap" justifyContent="space-between">
-          {accountsByType.regular.map((account) => {
-            const { Icon, color } = ACCOUNT_ICONS[account.icon as keyof typeof ACCOUNT_ICONS];
-            return (
-              <Card
-                key={account.id}
-                sx={{
-                  width: 350,
-                  mb: 2,
-                  cursor: 'pointer',
-                  transition: 'box-shadow ease-in 0.2s',
-                  ...(selectedAccount.id === account.id
-                    ? {
-                        transition: 'box-shadow ease-in 0.2s',
-                        boxShadow:
-                          'inset 0 0 50px #fff, inset 20px 0 80px #f0f,  inset -20px 0 80px #0ff, inset 20px 0 300px #f0f,inset -20px 0 300px #0ff, 0 0 50px #fff,-10px 0 80px #f0f,  10px 0 80px #0ff',
-                      }
-                    : {}),
-                }}
-                onClick={() => handleSelectAccount(account)}
-              >
-                <CardContent sx={{ display: 'flex', gap: 3, pt: 1 }}>
-                  <Box>{<Icon sx={{ fill: color }} />}</Box>
-                  <Box>
-                    <Typography variant="subtitle1">{account.name}</Typography>
-                    <Box display="flex" gap={1}>
-                      <Typography>{account.balance}</Typography>
-                      <Typography>{account.currency}</Typography>
-                    </Box>
-                  </Box>
-                  <Box flex={1}>
-                    {account.isCredit && (
-                      <Typography
-                        color={selectedAccount.id === account.id ? 'white' : 'secondary'}
-                        textAlign="end"
-                      >
-                        Credit
-                      </Typography>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {accountsByType.regular.map((account) => (
+            <AccountCard
+              key={account.id}
+              account={account}
+              isSelected={selectedAccount.id === account.id}
+              onCardClick={handleSelectAccount}
+            />
+          ))}
         </Box>
         <Typography variant="h6">Cryptocurrency Accounts</Typography>
         <Box display="flex" flexWrap="wrap" justifyContent="space-between">
-          {accountsByType.crypto.map((account) => {
-            const { Icon, color } = ACCOUNT_ICONS[account.icon as keyof typeof ACCOUNT_ICONS];
-            return (
-              <Card
-                key={account.id}
-                sx={{
-                  width: 350,
-                  cursor: 'pointer',
-                  ...(selectedAccount.id === account.id
-                    ? {
-                        transition: 'box-shadow ease-in 0.2s',
-                        boxShadow:
-                          'inset 0 0 50px #fff, inset 20px 0 80px #f0f,  inset -20px 0 80px #0ff, inset 20px 0 300px #f0f,inset -20px 0 300px #0ff, 0 0 50px #fff,-10px 0 80px #f0f,  10px 0 80px #0ff',
-                      }
-                    : {}),
-                }}
-                onClick={() => handleSelectAccount(account)}
-              >
-                <CardContent sx={{ display: 'flex', gap: 3, pt: 1 }}>
-                  <Box>{<Icon sx={{ fill: color }} />}</Box>
-                  <Box>
-                    <Typography variant="subtitle1">{account.name}</Typography>
-                    <Box display="flex" gap={1}>
-                      <Typography>{account.balance}</Typography>
-                      <Typography>{account.currency}</Typography>
-                    </Box>
-                  </Box>
-                  <Box flex={1}>
-                    {account.isCredit && (
-                      <Typography
-                        color={selectedAccount.id === account.id ? 'white' : 'secondary'}
-                        textAlign="end"
-                      >
-                        Credit
-                      </Typography>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {accountsByType.crypto.map((account) => (
+            <AccountCard
+              key={account.id}
+              account={account}
+              isSelected={selectedAccount.id === account.id}
+              onCardClick={handleSelectAccount}
+            />
+          ))}
         </Box>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Transactions</Typography>
@@ -288,42 +151,13 @@ export function AccountsView() {
           </Button>
         </Box>
         <Box width="100%" display="flex" flexDirection="column" gap={4}>
-          {transactions.map((transaction) => {
-            return (
-              <Card key={transaction.id}>
-                <CardContent>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <Box display="flex" alignItems="center" gap={1} flex={1}>
-                      <Typography variant="overline">
-                        {format(transaction.date, 'dd MMMM yyyy')}
-                      </Typography>
-
-                      <Divider orientation="vertical" sx={{ height: 20 }} />
-                      <Typography
-                        variant="overline"
-                        color={transaction.type === 'DEPOSIT' ? 'success.light' : 'error.light'}
-                      >
-                        {transaction.type}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography
-                        color={transaction.type === 'DEPOSIT' ? 'success.light' : 'error.light'}
-                      >
-                        {transaction.type === 'DEPOSIT'
-                          ? transaction.amount
-                          : `-${transaction.amount}`}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box display="flex" alignItems="center" justifyContent="flex-start">
-                    <Button startIcon={<ExpandMoreRounded />}>Show more</Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {transactions.map((transaction) => (
+            <TransactionCard key={transaction.id} transaction={transaction} />
+          ))}
         </Box>
+      </Box>
+      <Box width="100%" display="flex" justifyContent="center" pt={2}>
+        <LoadingButton variant="contained">Load more</LoadingButton>
       </Box>
     </PageWrapper>
   );

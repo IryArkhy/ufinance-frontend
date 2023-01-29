@@ -11,8 +11,9 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { NavigationSidebar } from './components';
 import NotificationProvider from './lib/notifications';
 import { ROUTES } from './lib/router';
-import { ProtectedRoute } from './lib/router-dom';
+import { ProtectedRoute } from './lib/routerDom';
 import { theme } from './lib/theme';
+import ActionConfirmationModalProvider from './lib/userConfirmation';
 import {
   AccountsView,
   AuthenticationView,
@@ -86,7 +87,9 @@ function App() {
         <Provider store={store}>
           <PersistGate persistor={persistor}>
             <NotificationProvider>
-              <Router />
+              <ActionConfirmationModalProvider>
+                <Router />
+              </ActionConfirmationModalProvider>
             </NotificationProvider>
           </PersistGate>
         </Provider>
