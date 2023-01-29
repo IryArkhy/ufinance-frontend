@@ -2,8 +2,8 @@ export type Account = {
   id: string;
   name: string;
   balance: number;
-  currency: string;
-  icon: string;
+  currency: AvailableCurrency;
+  icon: AvailableIcons;
   isCredit: boolean;
 };
 
@@ -15,6 +15,37 @@ export type Transaction = {
   date: Date;
   payee: string | null;
   account: string;
-  type: 'WITHDRAWAL' | 'DEPOSIT';
+  type: 'WITHDRAWAL' | 'DEPOSIT' | 'TRANSFER';
   tags: string[];
 };
+
+export enum AccountIconsNames {
+  BANK = 'BANK',
+  CARD = 'CARD',
+  MONEY = 'MONEY',
+  BILL = 'BILL',
+  SAVINGS = 'SAVINGS',
+  WALLET = 'WALLET',
+  USD = 'USD',
+  EUR = 'EUR',
+  BTC = 'BTC',
+  PAYMENTS = 'PAYMENTS',
+  SHOPPING = 'SHOPPING',
+  TRAVEL = 'TRAVEL',
+}
+
+export type AvailableIcons =
+  | 'BANK'
+  | 'CARD'
+  | 'MONEY'
+  | 'BILL'
+  | 'SAVINGS'
+  | 'WALLET'
+  | 'USD'
+  | 'EUR'
+  | 'BTC'
+  | 'PAYMENTS'
+  | 'SHOPPING'
+  | 'TRAVEL';
+
+export type AvailableCurrency = 'UAH' | 'USD' | 'EUR' | 'BTC' | 'ETH';

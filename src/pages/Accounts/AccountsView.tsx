@@ -5,14 +5,15 @@ import React from 'react';
 
 import { PageWrapper, Toolbar } from '../../components';
 
-import { AccountCard, TransactionCard } from './components';
-import { Account, Transaction } from './types';
+import { AccountCard, AccountModal, TransactionCard } from './components';
+import { TransactionModal } from './components/TransactionModal';
+import { Account, AccountIconsNames, AvailableIcons, Transaction } from './types';
 
 const accounts: Account[] = [
   {
     id: '1',
     name: 'Credit card UAH',
-    balance: 2000,
+    balance: -2000,
     currency: 'UAH',
     icon: 'BANK',
     isCredit: true,
@@ -60,6 +61,7 @@ export function AccountsView() {
 
   const [selectedAccount, setSelectedAccount] = React.useState(accountsByType.regular[0]);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = React.useState(false);
+  const [isUpdateAccountModalOpen, setIsUpdateAccountModalOpen] = React.useState(false);
   const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] = React.useState(false);
 
   const handleSelectAccount = (account: Account) => {
@@ -113,13 +115,21 @@ export function AccountsView() {
     },
   ];
 
+  const handleTriggerUpdateAccountModal = () => {
+    setIsUpdateAccountModalOpen(true);
+  };
+
   return (
     <PageWrapper>
       <Toolbar />
       <Box width="100%" display="flex" flexDirection="column" gap={4}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Regular Currency Accounts</Typography>
-          <Button variant="contained" startIcon={<AddRounded />}>
+          <Button
+            variant="contained"
+            startIcon={<AddRounded />}
+            onClick={() => setIsCreateAccountModalOpen(true)}
+          >
             Create new account
           </Button>
         </Box>
@@ -130,6 +140,7 @@ export function AccountsView() {
               account={account}
               isSelected={selectedAccount.id === account.id}
               onCardClick={handleSelectAccount}
+              onEditAccountClick={handleTriggerUpdateAccountModal}
             />
           ))}
         </Box>
@@ -141,27 +152,73 @@ export function AccountsView() {
               account={account}
               isSelected={selectedAccount.id === account.id}
               onCardClick={handleSelectAccount}
+              onEditAccountClick={handleTriggerUpdateAccountModal}
             />
           ))}
         </Box>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Transactions</Typography>
-          <Button variant="contained" startIcon={<AddRounded />}>
+          <Button
+            variant="contained"
+            startIcon={<AddRounded />}
+            onClick={() => setIsCreateTransactionModalOpen(true)}
+          >
             Add transaction
           </Button>
         </Box>
         <Box width="100%" display="flex" flexDirection="column" gap={4}>
           {transactions.map((transaction) => (
-            <TransactionCard key={transaction.id} transaction={transaction} />
+            <TransactionCard
+              key={transaction.id}
+              transaction={transaction}
+              selectedAccount={selectedAccount}
+              accounts={accounts}
+            />
           ))}
         </Box>
       </Box>
       <Box width="100%" display="flex" justifyContent="center" pt={2}>
         <LoadingButton variant="contained">Load more</LoadingButton>
       </Box>
+      <AccountModal
+        isOpen={isCreateAccountModalOpen}
+        onClose={() => setIsCreateAccountModalOpen(false)}
+      />
+      <AccountModal
+        isOpen={isUpdateAccountModalOpen}
+        onClose={() => setIsUpdateAccountModalOpen(false)}
+        defaultValues={{
+          balance: selectedAccount.balance,
+          name: selectedAccount.name,
+          currency: selectedAccount.currency,
+          isCredit: selectedAccount.isCredit,
+          icon: AccountIconsNames[selectedAccount.icon as keyof typeof AccountIconsNames],
+        }}
+      />
+      <TransactionModal
+        isOpen={isCreateTransactionModalOpen}
+        onClose={() => setIsCreateTransactionModalOpen(false)}
+        accounts={accounts}
+        defaultValues={{
+          account: selectedAccount,
+        }}
+      />
     </PageWrapper>
   );
 }
+
+/**
+ *       defaultValues={{
+          account: selectedAccount,
+          category: null,
+          payee: null,
+          tags: [],
+          amount: 0,
+          transactionType: 'WITHDRAWAL',
+          receivingAccount: null,
+          description: '',
+        }}
+ */
 
 /**
  *     box-shadow: inset 0 0 50px #fff, inset 20px 0 80px #ff5722, inset -20px 0 80px #1c00ff, inset 20px 0 300px #ff5722, inset -20px 0 300px #0ff, 0 0 50px #fff, -10px 0 80px #2196f3, 10px 0 80px #673ab7;

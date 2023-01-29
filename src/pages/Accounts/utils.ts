@@ -11,52 +11,54 @@ import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import ShoppingBasketRoundedIcon from '@mui/icons-material/ShoppingBasketRounded';
 
+import { AccountIconsNames } from './types';
+
 export const ACCOUNT_ICONS = {
-  BANK: {
+  [AccountIconsNames.BANK]: {
     Icon: AccountBalanceRoundedIcon,
     color: '#00425A',
   },
-  CARD: {
+  [AccountIconsNames.CARD]: {
     Icon: PaymentRoundedIcon,
     color: '#F48484',
   },
-  MONEY: {
+  [AccountIconsNames.MONEY]: {
     Icon: MonetizationOnRoundedIcon,
     color: '#FC7300',
   },
-  BILL: {
+  [AccountIconsNames.BILL]: {
     Icon: MoneyRoundedIcon,
     color: '#1F8A70',
   },
-  SAVINGS: {
+  [AccountIconsNames.SAVINGS]: {
     Icon: SavingsRoundedIcon,
     color: '#EBC7E6',
   },
-  WALLET: {
+  [AccountIconsNames.WALLET]: {
     Icon: AccountBalanceWalletRoundedIcon,
     color: '#BFDB38',
   },
-  USD: {
+  [AccountIconsNames.USD]: {
     Icon: AttachMoneyRoundedIcon,
     color: '#84D2C5',
   },
-  EUR: {
+  [AccountIconsNames.EUR]: {
     Icon: EuroRoundedIcon,
     color: '#B05A7A',
   },
-  BTC: {
+  [AccountIconsNames.BTC]: {
     Icon: CurrencyBitcoinRoundedIcon,
     color: '#FEBE8C',
   },
-  PAYMENTS: {
+  [AccountIconsNames.PAYMENTS]: {
     Icon: PaymentsRoundedIcon,
     color: '#F7A4A4',
   },
-  SHOPPING: {
+  [AccountIconsNames.SHOPPING]: {
     Icon: ShoppingBasketRoundedIcon,
     color: '#E3ACF9',
   },
-  TRAVEL: {
+  [AccountIconsNames.TRAVEL]: {
     Icon: CardTravelRoundedIcon,
     color: '#FBC252',
   },

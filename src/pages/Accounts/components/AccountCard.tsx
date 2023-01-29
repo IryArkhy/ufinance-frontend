@@ -19,9 +19,15 @@ interface AccountCardProps {
   account: Account;
   isSelected: boolean;
   onCardClick: (account: Account) => void;
+  onEditAccountClick: () => void;
 }
 
-export function AccountCard({ account, isSelected, onCardClick }: AccountCardProps) {
+export function AccountCard({
+  account,
+  isSelected,
+  onCardClick,
+  onEditAccountClick,
+}: AccountCardProps) {
   const { onTriggerConfirmation } = useContext(ActionConfirmationModalContext);
   const { Icon, color } = ACCOUNT_ICONS[account.icon as keyof typeof ACCOUNT_ICONS];
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -30,11 +36,12 @@ export function AccountCard({ account, isSelected, onCardClick }: AccountCardPro
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
   const handleDeleteMenuItemClick = () => {
+    handleCloseMenu();
     onTriggerConfirmation(
       () => undefined,
       "Are you sure, you'd like to delete account?",
@@ -64,7 +71,7 @@ export function AccountCard({ account, isSelected, onCardClick }: AccountCardPro
             <MoreHorizRoundedIcon />
           </IconButton>
           <Menu
-            id="menu-appbar"
+            id="account-actions-menu"
             anchorEl={anchorEl}
             anchorOrigin={{
               vertical: 'top',
@@ -76,9 +83,16 @@ export function AccountCard({ account, isSelected, onCardClick }: AccountCardPro
               horizontal: 'right',
             }}
             open={Boolean(anchorEl)}
-            onClose={handleClose}
+            onClose={handleCloseMenu}
           >
-            <MenuItem>Edit</MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleCloseMenu();
+                onEditAccountClick();
+              }}
+            >
+              Edit
+            </MenuItem>
             <MenuItem onClick={handleDeleteMenuItemClick}>
               <Typography color="error.light">Delete</Typography>
             </MenuItem>

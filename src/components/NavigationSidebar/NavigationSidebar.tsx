@@ -89,7 +89,7 @@ export function NavigationSidebar() {
             </Typography>
           </ListItem>
           {firstLevelItems.map(({ title, Icon, navigateTo }) => (
-            <ListItem key={title} disablePadding>
+            <ListItem key={title} disablePadding sx={{ cursor: 'pointer' }}>
               <ListItemButton onClick={() => navigate(navigateTo)}>
                 <ListItemIcon>
                   <Icon
@@ -116,7 +116,7 @@ export function NavigationSidebar() {
         <Divider sx={{ borderColor: palette.grey[700] }} />
         <List>
           {secondLevelItems.map(({ title, Icon, action }) => (
-            <ListItem key={title} disablePadding>
+            <ListItem key={title} disablePadding sx={{ cursor: 'pointer' }}>
               <ListItemButton onClick={action}>
                 <ListItemIcon>
                   <Icon
