@@ -13,6 +13,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { capitalize, isEqual } from 'lodash';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -28,6 +31,7 @@ type FormData = {
   tags: { id: string; name: string }[];
   receivingAccount: Account | null;
   description: string;
+  date: Date;
 };
 
 type FormValues = {
@@ -39,6 +43,7 @@ type FormValues = {
   tags: { label: string; value: string }[];
   receivingAccount: { label: string; value: string };
   description: string;
+  date: Date;
 };
 
 interface TransactionModalProps {
@@ -88,6 +93,7 @@ export function TransactionModal({
     tags: [],
     receivingAccount: { label: '', value: '' },
     description: '',
+    date: new Date(),
   };
 
   const {
@@ -130,6 +136,7 @@ export function TransactionModal({
             ? { label: propsValues.receivingAccount.name, value: propsValues.receivingAccount.id }
             : defaultValues.receivingAccount,
           description: propsValues.description,
+          date: propsValues.date,
         };
 
         reset(values);
@@ -236,6 +243,19 @@ export function TransactionModal({
                   }}
                 />
               </FormControl>
+            )}
+          />
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Basic example"
+                  {...field}
+                  renderInput={(params) => <TextField {...params} />}
+                />
+              </LocalizationProvider>
             )}
           />
 

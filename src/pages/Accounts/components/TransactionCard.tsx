@@ -174,6 +174,7 @@ export function TransactionCard({ transaction, selectedAccount, accounts }: Tran
           transactionType: transaction.type,
           receivingAccount: null,
           description: transaction.description ?? '',
+          date: transaction.date,
         }}
       />
     </Card>
