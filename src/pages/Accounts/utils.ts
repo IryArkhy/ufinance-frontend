@@ -11,6 +11,8 @@ import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded';
 import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
 import ShoppingBasketRoundedIcon from '@mui/icons-material/ShoppingBasketRounded';
 
+import { Account } from '../../lib/api/accounts';
+
 import { AccountIconsNames } from './types';
 
 export const ACCOUNT_ICONS = {
@@ -62,4 +64,23 @@ export const ACCOUNT_ICONS = {
     Icon: CardTravelRoundedIcon,
     color: '#FBC252',
   },
+};
+
+const CRYPTO_CURRENCY = ['BTC', 'ETH'];
+
+export const groupAccountsByType = (
+  accounts: Account[],
+): { regular: Account[]; crypto: Account[] } => {
+  const accountsByType = accounts.reduce(
+    (accountTypes, acc) => {
+      if (CRYPTO_CURRENCY.includes(acc.currency)) {
+        accountTypes.crypto.push(acc);
+      } else {
+        accountTypes.regular.push(acc);
+      }
+      return accountTypes;
+    },
+    { crypto: [] as Account[], regular: [] as Account[] },
+  );
+  return accountsByType;
 };

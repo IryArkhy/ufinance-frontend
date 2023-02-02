@@ -44,7 +44,7 @@ interface AccountModalProps {
   accountId?: string;
 }
 
-export function AccountModal({
+export function CreateAccountModal({
   accountId,
   isOpen,
   onClose,
@@ -53,10 +53,11 @@ export function AccountModal({
 }: AccountModalProps) {
   type IconOption = keyof typeof ACCOUNT_ICONS;
   const iconOptions = Object.keys(ACCOUNT_ICONS) as IconOption[];
-  const isCreate = Boolean(!propsValues);
+  const isCreate = Boolean(propsValues);
 
   const currencyOptions = ['UAH', 'USD', 'EUR', 'BTC', 'ETH'] as AvailableCurrency[];
 
+  console.log({ propsValues });
   const defaultValues = {
     name: '',
     balance: 0.0,
@@ -92,7 +93,7 @@ export function AccountModal({
       }
       onClose();
     } catch (error) {
-      console.log(error);
+      console.log();
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +108,7 @@ export function AccountModal({
   }, [propsValues]);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth keepMounted={false}>
+    <Dialog open={isOpen} onClose={onClose} fullWidth>
       <DialogTitle>{isCreate ? 'Create' : 'Update'} account</DialogTitle>
 
       <DialogContent>
@@ -219,14 +220,14 @@ export function AccountModal({
                 {propsValues && propsValues.balance < 0 ? (
                   <Tooltip title="Account cannot be negative if you want to change this field">
                     <FormControlLabel
-                      control={<Checkbox {...field} />}
+                      control={<Checkbox defaultChecked {...field} />}
                       label="Credit account"
                       disabled={propsValues && propsValues.balance < 0}
                     />
                   </Tooltip>
                 ) : (
                   <FormControlLabel
-                    control={<Checkbox {...field} checked={field.value} />}
+                    control={<Checkbox defaultChecked {...field} />}
                     label="Credit account"
                     disabled={propsValues && propsValues.balance < 0}
                   />

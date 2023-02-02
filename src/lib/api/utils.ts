@@ -69,3 +69,12 @@ export function handleError(error: unknown): ErrorData {
 
   return DEFAULT_ERROR;
 }
+
+export const getAuthHeader = (token: string) =>
+  token
+    ? {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    : {};

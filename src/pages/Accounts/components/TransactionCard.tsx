@@ -14,10 +14,11 @@ import {
 import { format } from 'date-fns';
 import React from 'react';
 
-import { ActionConfirmationModalContext } from '../../../lib/userConfirmation';
-import { Account, Transaction } from '../types';
+import { Account } from '../../../lib/api/accounts';
+import { Transaction } from '../../../lib/api/transactions';
 
 import { TransactionModal } from './TransactionModal';
+import { UpdateTransactionModal } from './UpdateTransactionModal';
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -26,7 +27,6 @@ interface TransactionCardProps {
 }
 
 export function TransactionCard({ transaction, selectedAccount, accounts }: TransactionCardProps) {
-  const { onTriggerConfirmation } = React.useContext(ActionConfirmationModalContext);
   const [isShowingMore, setIsShowingMore] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [isUpdateTransactionModalOpen, setIsUpdateTransactionModalOpen] = React.useState(false);
@@ -45,18 +45,16 @@ export function TransactionCard({ transaction, selectedAccount, accounts }: Tran
 
   const handleDeleteMenuItemClick = () => {
     handleCloseMenu();
-    onTriggerConfirmation(
-      () => undefined,
-      "Are you sure, you'd like to delete this transaction?",
-      'This action will cause changes in your account(-s) balance.',
-    );
   };
+
   return (
     <Card>
       <CardContent>
         <Box display="flex" alignItems="center" mb={1}>
           <Box display="flex" alignItems="center" gap={1} flex={1}>
-            <Typography variant="overline">{format(transaction.date, 'dd MMMM yyyy')}</Typography>
+            <Typography variant="overline">
+              {format(new Date(transaction.date), 'dd MMMM yyyy, HH:mm')}
+            </Typography>
 
             <Divider orientation="vertical" sx={{ height: 20 }} />
             <Typography
@@ -115,7 +113,7 @@ export function TransactionCard({ transaction, selectedAccount, accounts }: Tran
                   >
                     Category
                   </Typography>{' '}
-                  <Typography variant="body2">{transaction.category ?? '-'}</Typography>
+                  <Typography variant="body2">{transaction.category?.name ?? '-'}</Typography>
                 </Box>
                 <Box display="flex" alignItems="center" gap={1} width="100%">
                   <Typography
@@ -128,7 +126,7 @@ export function TransactionCard({ transaction, selectedAccount, accounts }: Tran
                   >
                     Payee
                   </Typography>{' '}
-                  <Typography variant="body2">{transaction.payee ?? '-'}</Typography>
+                  <Typography variant="body2">{transaction.payee?.name ?? '-'}</Typography>
                 </Box>
                 <Box display="flex" alignItems="center" gap={1} width="100%">
                   <Typography
@@ -161,22 +159,31 @@ export function TransactionCard({ transaction, selectedAccount, accounts }: Tran
           </Box>
         </Box>
       </CardContent>
-      <TransactionModal
+      <UpdateTransactionModal
+        isOpen={isUpdateTransactionModalOpen}
+        onClose={() => setIsUpdateTransactionModalOpen(false)}
+        transaction={transaction}
+        accounts={accounts}
+      />
+      {/* <TransactionModal
         isOpen={isUpdateTransactionModalOpen}
         onClose={() => setIsUpdateTransactionModalOpen(false)}
         accounts={accounts}
         defaultValues={{
           account: selectedAccount,
-          category: { id: '1', name: transaction.category ?? '' },
-          payee: { id: '1', name: transaction.payee ?? '' },
-          tags: [],
+          category: transaction.category,
+          payee: transaction.payee,
+          tags: transaction.tags.map((tagOnTransaction) => ({
+            id: tagOnTransaction.tagId,
+            name: tagOnTransaction.tag.name,
+          })),
           amount: transaction.amount,
           transactionType: transaction.type,
           receivingAccount: null,
           description: transaction.description ?? '',
-          date: transaction.date,
+          date: new Date(transaction.date),
         }}
-      />
+      /> */}
     </Card>
   );
 }

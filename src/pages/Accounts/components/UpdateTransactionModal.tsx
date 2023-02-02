@@ -1,3 +1,4 @@
+import { ExpandLessRounded, ExpandMoreRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -21,18 +22,13 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Account } from '../../../lib/api/accounts';
+import { Transaction } from '../../../lib/api/transactions';
+import { getCategories } from '../../../redux/categories/selectors';
+import { useSelector } from '../../../redux/hooks';
+import { getPayees } from '../../../redux/payees/selectors';
+import { getTags } from '../../../redux/tags/selectors';
 
-type FormData = {
-  account: Account;
-  amount: number;
-  category: { id: string; name: string } | null;
-  payee: { id: string; name: string } | null;
-  transactionType: 'WITHDRAWAL' | 'DEPOSIT' | 'TRANSFER';
-  tags: { id: string; name: string }[];
-  receivingAccount: Account | null;
-  description: string;
-  date: Date;
-};
+import { TransactionTypeToggleBtn } from './TransactionTypeToggleBtn';
 
 type FormValues = {
   account: { label: string; value: string };
@@ -46,60 +42,60 @@ type FormValues = {
   date: Date;
 };
 
-interface TransactionModalProps {
+interface UpdateTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultValues: Pick<FormData, 'account'> | FormData;
+  transaction: Transaction;
   accounts: Account[];
 }
 
-export function TransactionModal({
+export function UpdateTransactionModal({
   isOpen,
   onClose,
-  defaultValues: propsValues,
+  transaction,
   accounts,
-}: TransactionModalProps) {
+}: UpdateTransactionModalProps) {
+  const { categories } = useSelector(getCategories);
+  const { payees } = useSelector(getPayees);
+  const { tags } = useSelector(getTags);
+  const [isAllOptionsVisible, setIsAllOptionsVisible] = React.useState(false);
+
+  const {
+    fromAccountId,
+    amount,
+    category,
+    payee,
+    tags: transactionTags,
+    type,
+    toAccountId,
+    date,
+    description,
+  } = transaction;
+
   const targetAccountOptions = accounts.map((a) => ({ value: a.id, label: a.name }));
   const receivingAccountOptions = [...targetAccountOptions];
 
-  const categoryOptions = [
-    { value: '1', label: 'Shopping' },
-    { value: '2', label: 'Bills' },
-    { value: '3', label: 'Groceries' },
-    { value: '4', label: 'Pills' },
-    { value: '5', label: 'Doctor' },
-  ];
-  const payeeOptions = [
-    { value: '1', label: 'Aroma Kava' },
-    { value: '2', label: 'Silpo' },
-    { value: '3', label: 'Mega Market' },
-    { value: '4', label: 'Apteka' },
-    { value: '5', label: 'Yellow Cup Coffee' },
-  ];
-  const tagOptions = [
-    { value: '1', label: 'coffee' },
-    { value: '2', label: 'weekends' },
-    { value: '3', label: 'date' },
-    { value: '4', label: 'work' },
-    { value: '5', label: 'spa' },
-  ];
+  const categoryOptions = categories.map((c) => ({ label: c.name, value: c.id }));
+  const payeeOptions = payees.map((p) => ({ label: p.name, value: p.id }));
+  const tagOptions = tags.map((t) => ({ label: t.name, value: t.id }));
 
-  const defaultValues: FormValues = {
-    account: targetAccountOptions[0],
-    amount: 0,
-    category: { label: '', value: '' },
-    payee: { label: '', value: '' },
-    transactionType: 'WITHDRAWAL',
-    tags: [],
-    receivingAccount: { label: '', value: '' },
-    description: '',
-    date: new Date(),
+  const defaultOption = { label: '', value: '' };
+
+  const defaultValues = {
+    account: targetAccountOptions.find((a) => a.value === fromAccountId),
+    amount: amount,
+    category: category ? { value: category.id, label: category.name } : defaultOption,
+    payee: payee ? { value: payee.id, label: payee.name } : defaultOption,
+    transactionType: type,
+    tags: transactionTags.map((tag) => ({ label: tag.tag.name, value: tag.id })),
+    receivingAccount: receivingAccountOptions.find((a) => a.value === toAccountId) ?? defaultOption,
+    description: description ?? '',
+    date: new Date(date),
   };
 
   const {
     control,
     handleSubmit: onSubmit,
-    reset,
     watch,
   } = useForm<FormValues>({
     defaultValues,
@@ -110,48 +106,9 @@ export function TransactionModal({
 
   const handleSubmit = (values: FormValues) => undefined;
 
-  function isFormData(values: typeof propsValues): values is FormData {
-    if (Object.keys(values).length > 1) {
-      return true;
-    }
-
-    return false;
-  }
-
-  React.useEffect(() => {
-    if (propsValues) {
-      if (isFormData(propsValues)) {
-        const values: FormValues = {
-          account: { label: propsValues.account.name, value: propsValues.account.id },
-          amount: propsValues.amount,
-          category: propsValues.category
-            ? { label: propsValues.category.name, value: propsValues.category.id }
-            : defaultValues.category,
-          payee: propsValues.payee
-            ? { label: propsValues.payee.name, value: propsValues.payee.id }
-            : defaultValues.payee,
-          transactionType: propsValues.transactionType,
-          tags: propsValues.tags.map((tag) => ({ label: tag.name, value: tag.id })),
-          receivingAccount: propsValues.receivingAccount
-            ? { label: propsValues.receivingAccount.name, value: propsValues.receivingAccount.id }
-            : defaultValues.receivingAccount,
-          description: propsValues.description,
-          date: propsValues.date,
-        };
-
-        reset(values);
-      } else {
-        reset({
-          ...defaultValues,
-          account: { label: propsValues.account.name, value: propsValues.account.id },
-        });
-      }
-    }
-  }, [propsValues]);
-
   return (
     <Dialog open={isOpen} onClose={onClose} fullWidth keepMounted={false}>
-      <DialogTitle>{isFormData(propsValues) ? 'Update' : 'Add'} transaction</DialogTitle>
+      <DialogTitle>Update transaction</DialogTitle>
 
       <DialogContent>
         <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
@@ -160,7 +117,8 @@ export function TransactionModal({
             control={control}
             render={({ field }) => (
               <FormControl>
-                <Autocomplete
+                <TransactionTypeToggleBtn value={field.value} onChange={field.onChange} />
+                {/* <Autocomplete
                   options={['WITHDRAWAL', 'DEPOSIT', 'TRANSFER']}
                   {...field}
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
@@ -169,7 +127,7 @@ export function TransactionModal({
                   renderInput={(params) => (
                     <TextField label="Transaction type" {...params} size="small" required />
                   )}
-                />
+                /> */}
               </FormControl>
             )}
           />
@@ -259,92 +217,107 @@ export function TransactionModal({
             )}
           />
 
-          {watchTransactionTypes !== 'TRANSFER' && (
-            // Async Autocomplete
+          {isAllOptionsVisible && (
             <>
+              {watchTransactionTypes !== 'TRANSFER' && (
+                // Async Autocomplete
+                <>
+                  <Controller
+                    name="category"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl>
+                        <Autocomplete
+                          options={categoryOptions}
+                          {...field}
+                          freeSolo
+                          isOptionEqualToValue={(o, v) => isEqual(o, v)}
+                          onChange={(_e, nextValue) => field.onChange(nextValue)}
+                          renderInput={(params) => (
+                            <TextField label="Category" {...params} size="small" />
+                          )}
+                        />
+                      </FormControl>
+                    )}
+                  />
+                  {/* Async Autocomplete */}
+                  <Controller
+                    name="payee"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl>
+                        <Autocomplete
+                          options={payeeOptions}
+                          {...field}
+                          freeSolo
+                          isOptionEqualToValue={(o, v) => isEqual(o, v)}
+                          onChange={(_e, nextValue) => field.onChange(nextValue)}
+                          renderInput={(params) => (
+                            <TextField label="Payee" {...params} size="small" />
+                          )}
+                        />
+                      </FormControl>
+                    )}
+                  />
+                </>
+              )}
+
               <Controller
-                name="category"
+                name="description"
                 control={control}
                 render={({ field }) => (
                   <FormControl>
-                    <Autocomplete
-                      options={categoryOptions}
+                    <TextField
+                      multiline
+                      type="text"
+                      size="small"
+                      rows={3}
+                      label="Description"
                       {...field}
-                      freeSolo
-                      isOptionEqualToValue={(o, v) => isEqual(o, v)}
-                      onChange={(_e, nextValue) => field.onChange(nextValue)}
-                      renderInput={(params) => (
-                        <TextField label="Category" {...params} size="small" />
-                      )}
                     />
                   </FormControl>
                 )}
               />
-              {/* Async Autocomplete */}
-              <Controller
-                name="payee"
-                control={control}
-                render={({ field }) => (
-                  <FormControl>
-                    <Autocomplete
-                      options={payeeOptions}
-                      {...field}
-                      freeSolo
-                      isOptionEqualToValue={(o, v) => isEqual(o, v)}
-                      onChange={(_e, nextValue) => field.onChange(nextValue)}
-                      renderInput={(params) => <TextField label="Payee" {...params} size="small" />}
-                    />
-                  </FormControl>
-                )}
-              />
+              {watchTransactionTypes !== 'TRANSFER' && (
+                <Controller
+                  name="tags"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl>
+                      <Autocomplete
+                        multiple
+                        options={tagOptions}
+                        freeSolo
+                        {...field}
+                        onChange={(_e, nextValue) => field.onChange(nextValue)}
+                        isOptionEqualToValue={(o, v) => isEqual(o, v)}
+                        renderTags={(value: { label: string; value: string }[], getTagProps) =>
+                          value.map((option, index: number) => (
+                            <Chip
+                              variant="outlined"
+                              label={option.label}
+                              {...getTagProps({ index })}
+                              key={option.value}
+                            />
+                          ))
+                        }
+                        renderInput={(params) => <TextField {...params} label="Tags" />}
+                      />
+                    </FormControl>
+                  )}
+                />
+              )}
             </>
           )}
+        </Box>
 
-          <Controller
-            name="description"
-            control={control}
-            render={({ field }) => (
-              <FormControl>
-                <TextField
-                  multiline
-                  type="text"
-                  size="small"
-                  rows={3}
-                  label="Description"
-                  {...field}
-                />
-              </FormControl>
-            )}
-          />
-          {watchTransactionTypes !== 'TRANSFER' && (
-            <Controller
-              name="tags"
-              control={control}
-              render={({ field }) => (
-                <FormControl>
-                  <Autocomplete
-                    multiple
-                    options={tagOptions}
-                    freeSolo
-                    {...field}
-                    onChange={(_e, nextValue) => field.onChange(nextValue)}
-                    isOptionEqualToValue={(o, v) => isEqual(o, v)}
-                    renderTags={(value: { label: string; value: string }[], getTagProps) =>
-                      value.map((option, index: number) => (
-                        <Chip
-                          variant="outlined"
-                          label={option.label}
-                          {...getTagProps({ index })}
-                          key={option.value}
-                        />
-                      ))
-                    }
-                    renderInput={(params) => <TextField {...params} label="Tags" />}
-                  />
-                </FormControl>
-              )}
-            />
-          )}
+        <Box display="flex" alignItems="center" justifyContent="center" my={2}>
+          <Button
+            startIcon={isAllOptionsVisible ? <ExpandLessRounded /> : <ExpandMoreRounded />}
+            onClick={() => setIsAllOptionsVisible((current) => !current)}
+          >
+            {isAllOptionsVisible ? 'Show less' : 'Show more'}
+          </Button>
         </Box>
       </DialogContent>
       <DialogActions>

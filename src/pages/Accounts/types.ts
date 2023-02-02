@@ -1,12 +1,3 @@
-export type Account = {
-  id: string;
-  name: string;
-  balance: number;
-  currency: AvailableCurrency;
-  icon: AvailableIcons;
-  isCredit: boolean;
-};
-
 export type Transaction = {
   id: number;
   amount: number;
@@ -33,19 +24,3 @@ export enum AccountIconsNames {
   SHOPPING = 'SHOPPING',
   TRAVEL = 'TRAVEL',
 }
-
-export type AvailableIcons =
-  | 'BANK'
-  | 'CARD'
-  | 'MONEY'
-  | 'BILL'
-  | 'SAVINGS'
-  | 'WALLET'
-  | 'USD'
-  | 'EUR'
-  | 'BTC'
-  | 'PAYMENTS'
-  | 'SHOPPING'
-  | 'TRAVEL';
-
-export type AvailableCurrency = 'UAH' | 'USD' | 'EUR' | 'BTC' | 'ETH';

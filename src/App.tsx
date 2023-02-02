@@ -13,7 +13,6 @@ import NotificationProvider from './lib/notifications';
 import { ROUTES } from './lib/router';
 import { ProtectedRoute } from './lib/routerDom';
 import { theme } from './lib/theme';
-import ActionConfirmationModalProvider from './lib/userConfirmation';
 import {
   AccountsView,
   AuthenticationView,
@@ -87,9 +86,7 @@ function App() {
         <Provider store={store}>
           <PersistGate persistor={persistor}>
             <NotificationProvider>
-              <ActionConfirmationModalProvider>
-                <Router />
-              </ActionConfirmationModalProvider>
+              <Router />
             </NotificationProvider>
           </PersistGate>
         </Provider>
