@@ -7,24 +7,62 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CircularProgress,
   Divider,
   Typography,
   useTheme,
 } from '@mui/material';
-import { DataGrid, GridColDef, GridRowsProp } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridRowsProp } from '@mui/x-data-grid';
 import { ApexOptions } from 'apexcharts';
 import { format } from 'date-fns';
+import React from 'react';
 import Chart from 'react-apexcharts';
+import { useNavigate } from 'react-router-dom';
 
 import Deposit from '../../assets/deposit.png';
 import MoneyBag from '../../assets/money-bag.png';
 import Withdrawal from '../../assets/withdrawal.png';
 import { PageWrapper, Toolbar } from '../../components';
+import { Account } from '../../lib/api/accounts';
+import { Transaction } from '../../lib/api/transactions';
+import { ROUTES } from '../../lib/router';
+import { getTransactionAmountData } from '../../lib/transactions';
+import { useDispatch, useSelector } from '../../redux/hooks';
+import { getOverview, getRecentTransactions, getStatistics } from '../../redux/insights/selectors';
+import {
+  fetchCurrentMonthTransactions,
+  fetchOverview,
+  fetchStatistics,
+} from '../../redux/insights/thunks';
+import { ACCOUNT_ICONS } from '../Accounts/utils';
 
 import { InsightsCard } from './components';
 
 export function DashboardView() {
   const { palette } = useTheme();
+  const dispatch = useDispatch();
+  const overview = useSelector(getOverview);
+  const statistics = useSelector(getStatistics);
+  const transactions = useSelector(getRecentTransactions);
+  const navigate = useNavigate();
+
+  const loadInsights = async () => {
+    try {
+      await Promise.all([
+        dispatch(fetchOverview()),
+        dispatch(fetchStatistics()),
+        dispatch(fetchCurrentMonthTransactions()),
+      ]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  React.useEffect(() => {
+    loadInsights();
+  }, []);
+
+  const handleNavigateToAccounts = () => navigate(ROUTES.ACCOUNTS);
 
   const chartOption: ApexOptions = {
     chart: {
@@ -40,67 +78,103 @@ export function DashboardView() {
         },
       },
     },
+    yaxis: {
+      title: {
+        text: 'Balance, $',
+      },
+    },
     xaxis: {
-      categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
+      categories: statistics.data ? statistics.data.balanceData.date : [],
+      type: 'datetime',
+      title: {
+        text: 'Date',
+        offsetY: 70,
+      },
     },
   };
 
   const chartSeries = [
     {
-      name: 'series-1',
-      data: [30, 40, 45, 50, 49, 60, 70, 91],
+      name: 'Balance change',
+      data: statistics.data ? statistics.data.balanceData.balance : [],
     },
   ];
 
-  const donutChartSeries = [44, 55, 13, 33];
+  const donutChartSeries = statistics.data
+    ? Object.values(statistics.data.transactionsByCategoryData)
+    : [];
+
   const donutChartOptions = {
-    labels: ['Apple', 'Mango', 'Orange', 'Watermelon'],
+    labels: statistics.data ? Object.keys(statistics.data.transactionsByCategoryData) : [],
   };
 
-  const transactions = [
-    {
-      id: 1,
-      payee: 'Starbucks',
-      date: format(new Date(), 'dd MMMM yyyy'),
-      category: 'coffee',
-      price: 100,
-    },
-    {
-      id: 2,
-      payee: 'Aroma Kava',
-      date: format(new Date(), 'dd MMMM yyyy'),
-      category: 'coffee',
-      price: 20,
-    },
-    {
-      id: 3,
-      payee: 'Yellow coffee',
-      date: format(new Date(), 'dd MMMM yyyy'),
-      category: 'coffee',
-      price: 788,
-    },
-    {
-      id: 4,
-      payee: 'Silpo',
-      date: format(new Date(), 'dd MMMM yyyy'),
-      category: 'groceries',
-      price: 2037,
-    },
-    {
-      id: 5,
-      payee: 'Zara',
-      date: format(new Date(), 'dd MMMM yyyy'),
-      category: 'shopping',
-      price: 1000,
-    },
-  ];
+  // const transactions = [
+  //   {
+  //     id: 1,
+  //     payee: 'Starbucks',
+  //     date: format(new Date(), 'dd MMMM yyyy'),
+  //     category: 'coffee',
+  //     price: 100,
+  //   },
+  //   {
+  //     id: 2,
+  //     payee: 'Aroma Kava',
+  //     date: format(new Date(), 'dd MMMM yyyy'),
+  //     category: 'coffee',
+  //     price: 20,
+  //   },
+  //   {
+  //     id: 3,
+  //     payee: 'Yellow coffee',
+  //     date: format(new Date(), 'dd MMMM yyyy'),
+  //     category: 'coffee',
+  //     price: 788,
+  //   },
+  //   {
+  //     id: 4,
+  //     payee: 'Silpo',
+  //     date: format(new Date(), 'dd MMMM yyyy'),
+  //     category: 'groceries',
+  //     price: 2037,
+  //   },
+  //   {
+  //     id: 5,
+  //     payee: 'Zara',
+  //     date: format(new Date(), 'dd MMMM yyyy'),
+  //     category: 'shopping',
+  //     price: 1000,
+  //   },
+  // ];
 
-  const rows: GridRowsProp = transactions;
+  const rows: GridRowsProp =
+    transactions.data?.transactions.map((t) => ({
+      id: t.id,
+      date: format(new Date(t.date), 'dd MMMM yyyy, HH:mm'),
+      amount: t,
+      account: t.fromAccount,
+      category: t.category?.name,
+      type: t.type,
+    })) ?? [];
 
   const columns: GridColDef[] = [
     {
-      field: 'payee',
-      headerName: 'Payee',
+      field: 'account',
+      headerName: 'Account',
+      flex: 1,
+      headerClassName: 'lastTransactionsTableHeader',
+      renderCell: ({ value }: GridRenderCellParams<Account>) => {
+        const { Icon, color } = ACCOUNT_ICONS[value?.icon || 'BANK'];
+        return (
+          <Box display="flex" gap={2} alignItems="center">
+            <Icon sx={{ color }} />
+            <Typography variant="body2">{value?.name ?? 'Account'}</Typography>
+          </Box>
+        );
+      },
+    },
+    {
+      field: 'date',
+      headerName: 'Date',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
     },
@@ -111,21 +185,20 @@ export function DashboardView() {
       headerClassName: 'lastTransactionsTableHeader',
     },
     {
-      field: 'date',
-      headerName: 'Date',
-      flex: 1,
-      headerClassName: 'lastTransactionsTableHeader',
-    },
-    {
-      field: 'price',
+      field: 'amount',
       headerName: 'Price',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
-      renderCell: ({ value }) => (
-        <Typography variant="body2" fontWeight={600}>
-          {value}
-        </Typography>
-      ),
+      align: 'center',
+      renderCell: ({ value }: GridRenderCellParams<Transaction>) => {
+        const amountData = getTransactionAmountData(value!);
+        return (
+          <Typography variant="body2" fontWeight={600} color={amountData.color}>
+            {amountData.sign}
+            {amountData.amount}
+          </Typography>
+        );
+      },
     },
   ];
 
@@ -143,33 +216,43 @@ export function DashboardView() {
       </Box>
 
       <Box display="flex" gap={5} alignItems="center" mb={5}>
-        <Box flex={1}>
-          <InsightsCard
-            imgSrc={Deposit}
-            title="Total Income"
-            indicator="30 000 ₴"
-            buttonLabelEntity="transactions"
-            onButtonClick={() => {}}
-          />
-        </Box>
-        <Box flex={1}>
-          <InsightsCard
-            imgSrc={Withdrawal}
-            title="Total expences"
-            indicator="23 134 ₴"
-            buttonLabelEntity="transactions"
-            onButtonClick={() => {}}
-          />
-        </Box>
-        <Box flex={1}>
-          <InsightsCard
-            imgSrc={MoneyBag}
-            title="Total savings"
-            indicator="100 000 ₴"
-            buttonLabelEntity="savings"
-            onButtonClick={() => {}}
-          />
-        </Box>
+        {overview.loading === 'pending' ? (
+          <CircularProgress />
+        ) : (
+          <>
+            <Box flex={1}>
+              <InsightsCard
+                imgSrc={Deposit}
+                title="Total Income"
+                indicator={`${Math.round(
+                  overview.data?.totalExpensesAndEarnings.earningsInUah ?? 0,
+                ).toLocaleString()} ₴`}
+                buttonLabelEntity="transactions"
+                onButtonClick={handleNavigateToAccounts}
+              />
+            </Box>
+            <Box flex={1}>
+              <InsightsCard
+                imgSrc={Withdrawal}
+                title="Total expences"
+                indicator={`${Math.round(
+                  overview.data?.totalExpensesAndEarnings.expensesInUah ?? 0,
+                ).toLocaleString()} ₴`}
+                buttonLabelEntity="transactions"
+                onButtonClick={handleNavigateToAccounts}
+              />
+            </Box>
+            <Box flex={1}>
+              <InsightsCard
+                imgSrc={MoneyBag}
+                title="Transactions"
+                indicator={(overview.data?.transactionsCount ?? 0).toString()}
+                buttonLabelEntity="transcations"
+                onButtonClick={handleNavigateToAccounts}
+              />
+            </Box>
+          </>
+        )}
       </Box>
       <Box display="flex" gap={5} alignItems="center" mb={5}>
         <Card sx={{ flex: 1 }}>
@@ -183,7 +266,11 @@ export function DashboardView() {
               }
             />
 
-            <Chart options={chartOption} series={chartSeries} type="line" width="100%" />
+            {statistics.loading === 'pending' ? (
+              <CircularProgress />
+            ) : (
+              <Chart options={chartOption} series={chartSeries} type="line" width="100%" />
+            )}
           </CardContent>
         </Card>
         <Card sx={{ flex: 1 }}>
@@ -197,7 +284,11 @@ export function DashboardView() {
               }
             />
 
-            <Chart options={donutChartOptions} series={donutChartSeries} type="pie" width="95%" />
+            {statistics.loading === 'pending' ? (
+              <CircularProgress />
+            ) : (
+              <Chart options={donutChartOptions} series={donutChartSeries} type="pie" width="95%" />
+            )}
           </CardContent>
         </Card>
       </Box>
@@ -207,7 +298,7 @@ export function DashboardView() {
             title={<Typography variant="h6">Transactions History</Typography>}
             subheader={
               <Typography variant="body2" color="GrayText">
-                Based on the last 30 days
+                The most recent transactions
               </Typography>
             }
           />
@@ -240,7 +331,11 @@ export function DashboardView() {
           />
           <Divider />
           <Box p={1}>
-            <Button variant="text" endIcon={<ArrowForwardRoundedIcon />} onClick={() => {}}>
+            <Button
+              variant="text"
+              endIcon={<ArrowForwardRoundedIcon />}
+              onClick={handleNavigateToAccounts}
+            >
               See more
             </Button>
           </Box>

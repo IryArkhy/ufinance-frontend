@@ -5,6 +5,7 @@ import thunk from 'redux-thunk';
 
 import { balanceReducer } from './balance.ts/balanceSlice';
 import { categoriesReducer } from './categories/categoriesSlice';
+import { insightsReducer } from './insights/insightsSlice';
 import { payeesReducer } from './payees/payeesSlice';
 import { tagsReducer } from './tags/tagsSlice';
 import { userReducer } from './user/userSlice';
@@ -20,6 +21,7 @@ const rootReducer = combineReducers({
   categories: categoriesReducer,
   payees: payeesReducer,
   tags: tagsReducer,
+  insights: insightsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

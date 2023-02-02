@@ -11,10 +11,39 @@ import { TransactionType } from '../../../lib/api/transactions';
 interface TransactionTypeToggleBtnProps {
   value: TransactionType;
   onChange: (value: TransactionType) => void;
+  options: TransactionType[];
 }
-export function TransactionTypeToggleBtn({ value, onChange }: TransactionTypeToggleBtnProps) {
+export function TransactionTypeToggleBtn({
+  value,
+  onChange,
+  options,
+}: TransactionTypeToggleBtnProps) {
   const handleChange = (_: React.MouseEvent<HTMLElement>, value: TransactionType) => {
     onChange(value);
+  };
+
+  const getIcon = (type: TransactionType) => {
+    switch (type) {
+      case 'DEPOSIT':
+        return (
+          <Tooltip title="Deposit">
+            <AddCircleOutlineRoundedIcon />
+          </Tooltip>
+        );
+      case 'WITHDRAWAL':
+        return (
+          <Tooltip title="Withdraw">
+            <RemoveCircleOutlineRoundedIcon />
+          </Tooltip>
+        );
+
+      default:
+        return (
+          <Tooltip title="Transfer">
+            <CompareArrowsRoundedIcon />
+          </Tooltip>
+        );
+    }
   };
 
   return (
@@ -25,21 +54,11 @@ export function TransactionTypeToggleBtn({ value, onChange }: TransactionTypeTog
       aria-label="transaction type"
       sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      <ToggleButton value="WITHDRAWAL" aria-label="left aligned">
-        <Tooltip title="Withdraw">
-          <RemoveCircleOutlineRoundedIcon />
-        </Tooltip>
-      </ToggleButton>
-      <ToggleButton value="DEPOSIT" aria-label="centered">
-        <Tooltip title="Deposit">
-          <AddCircleOutlineRoundedIcon />
-        </Tooltip>
-      </ToggleButton>
-      <ToggleButton value="TRANSFER" aria-label="right aligned">
-        <Tooltip title="Transfer">
-          <CompareArrowsRoundedIcon />
-        </Tooltip>
-      </ToggleButton>
+      {options.map((type) => (
+        <ToggleButton key={type} value={type} aria-label="centered">
+          {getIcon(type)}
+        </ToggleButton>
+      ))}
     </ToggleButtonGroup>
   );
 }

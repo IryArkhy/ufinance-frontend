@@ -4,59 +4,16 @@ import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import React from 'react';
 
 import { PageWrapper, Toolbar } from '../../components';
-import {
-  Account,
-  UpdateAccountReqBody,
-  deleteAccount,
-  getAccounts,
-  updateAccount,
-} from '../../lib/api/accounts';
+import { Account, deleteAccount, getAccounts } from '../../lib/api/accounts';
 import { Transaction, getTransactions } from '../../lib/api/transactions';
 import { fetchBalance } from '../../redux/balance.ts/thunks';
 import { useDispatch, useSelector } from '../../redux/hooks';
 import { getToken } from '../../redux/user/selectors';
 
-import { AccountCard, AccountModal, TransactionCard } from './components';
-import { TransactionModal } from './components/TransactionModal';
-import { UpdateTransactionModal } from './components/UpdateTransactionModal';
+import { AccountCard, AccountModal, TransactionCard, TransferCard } from './components';
+import { CreateTransactionModal } from './components/TransactionFormsModals';
 import { AccountIconsNames } from './types';
 import { groupAccountsByType } from './utils';
-
-// const accounts: Account[] = [
-//   {
-//     id: '1',
-//     name: 'Credit card UAH',
-//     balance: -2000,
-//     currency: 'UAH',
-//     icon: 'BANK',
-//     isCredit: true,
-//   },
-//   {
-//     id: '2',
-//     name: 'Universal Bank USD',
-//     balance: 1322,
-//     currency: 'USD',
-//     icon: 'CARD',
-//     isCredit: false,
-//   },
-//   {
-//     id: '3',
-//     name: 'Raifaisen Bank EUR',
-//     balance: 1322,
-//     currency: 'USD',
-//     icon: 'WALLET',
-//     isCredit: false,
-//   },
-
-//   {
-//     id: '4',
-//     name: 'Binance BTC',
-//     balance: 0.0828264,
-//     currency: 'BTC',
-//     icon: 'BTC',
-//     isCredit: false,
-//   },
-// ];
 
 export function AccountsView() {
   const [accounts, setAccounts] = React.useState<Account[]>([]);
@@ -70,7 +27,6 @@ export function AccountsView() {
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = React.useState(false);
   const [isUpdateAccountModalOpen, setIsUpdateAccountModalOpen] = React.useState(false);
   const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] = React.useState(false);
-  // const [isUpdateTransactionModalOpen, setIsUpdateTransactionModalOpen] = React.useState(false);
   const [isAcccountsLoading, setIsAccountsLoading] = React.useState(false);
   const dispatch = useDispatch();
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
@@ -145,6 +101,7 @@ export function AccountsView() {
 
   const handleSelectAccount = (account: Account) => {
     setSelectedAccount(account);
+    setTransactionsOffset(0);
   };
 
   const handleTriggerUpdateAccountModal = () => {
@@ -184,7 +141,7 @@ export function AccountsView() {
     if (accounts.length && selectedAccount) {
       return (
         <>
-          <Box display="flex" flexWrap="wrap" justifyContent="space-between">
+          <Box display="flex" flexWrap="wrap" gap={3}>
             {accountsByType.regular.map((account) => (
               <AccountCard
                 key={account.id}
@@ -197,7 +154,7 @@ export function AccountsView() {
             ))}
           </Box>
           <Typography variant="h6">Cryptocurrency Accounts</Typography>
-          <Box display="flex" flexWrap="wrap" justifyContent="space-between">
+          <Box display="flex" flexWrap="wrap" gap={3}>
             {accountsByType.crypto.map((account) => (
               <AccountCard
                 key={account.id}
@@ -224,14 +181,18 @@ export function AccountsView() {
     if (transactions.length && selectedAccount) {
       return (
         <Box width="100%" display="flex" flexDirection="column" gap={4}>
-          {transactions.map((transaction) => (
-            <TransactionCard
-              key={transaction.id}
-              transaction={transaction}
-              selectedAccount={selectedAccount}
-              accounts={accounts}
-            />
-          ))}
+          {transactions.map((transaction) =>
+            transaction.type === 'TRANSFER' ? (
+              <TransferCard
+                key={transaction.id}
+                transaction={transaction}
+                accounts={accounts}
+                selectedAccount={selectedAccount}
+              />
+            ) : (
+              <TransactionCard key={transaction.id} transaction={transaction} accounts={accounts} />
+            ),
+          )}
         </Box>
       );
     }
@@ -305,13 +266,11 @@ export function AccountsView() {
         }
         onSubmitFinish={handleSubmitAccountUpdateCompleted}
       />
-      <TransactionModal
+      <CreateTransactionModal
         isOpen={isCreateTransactionModalOpen}
         onClose={() => setIsCreateTransactionModalOpen(false)}
         accounts={accounts}
-        defaultValues={{
-          account: selectedAccount ?? accounts[0],
-        }}
+        selectedAccount={selectedAccount}
       />
     </PageWrapper>
   );

@@ -17,25 +17,25 @@ import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
 import { Account } from '../../../lib/api/accounts';
-import { Transaction, deleteTransaction } from '../../../lib/api/transactions';
+import { Transaction, deleteTransaction, deleteTransfer } from '../../../lib/api/transactions';
 
-import { FormTransactionType, UpdateTransactionModal } from './TransactionFormsModals';
+import { FormTransferType, UpdateTransferModal } from './TransactionFormsModals';
 
-interface TransactionCardProps {
+interface TransferCardProps {
   transaction: Transaction;
-
+  selectedAccount: Account;
   accounts: Account[];
 }
 
 // TODO: separate card for transaction and transfer
 // TODO: add tags
 
-export function TransactionCard({ transaction, accounts }: TransactionCardProps) {
+export function TransferCard({ transaction, selectedAccount, accounts }: TransferCardProps) {
   const [isShowingMore, setIsShowingMore] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [isUpdateTransactionModalOpen, setIsUpdateTransactionModalOpen] = React.useState(false);
+  const [isUpdateTransferModalOpen, setIsUpdateTransferModalOpen] = React.useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = React.useState(false);
-  const [isDeleteTransactionLoading, setIsDeleteTransactionLoading] = React.useState(false);
+  const [isDeleteTransferLoading, setIsDeleteTransferLoading] = React.useState(false);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -45,19 +45,19 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
     setAnchorEl(null);
   };
 
-  const handleEditTransactionClick = () => {
-    setIsUpdateTransactionModalOpen(true);
+  const handleEditTransferClick = () => {
+    setIsUpdateTransferModalOpen(true);
   };
 
-  const removeTransaction = async () => {
+  const removeTransfer = async () => {
     try {
-      setIsDeleteTransactionLoading(true);
-      await deleteTransaction(transaction.fromAccountId, transaction.id);
+      setIsDeleteTransferLoading(true);
+      await deleteTransfer(transaction.fromAccountId, transaction.id);
       setIsConfirmationModalOpen(false);
     } catch (error) {
       console.log(error);
     } finally {
-      setIsDeleteTransactionLoading(false);
+      setIsDeleteTransferLoading(false);
     }
   };
 
@@ -66,12 +66,14 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
     setIsConfirmationModalOpen(true);
   };
 
-  const getCardData = (): { color: string; sign: '+' | '-'; amount: number } => {
-    if (transaction.type === 'DEPOSIT') {
-      return { color: 'success.light', sign: '+', amount: transaction.amount };
-    }
+  const isSendingAccountCard = transaction.fromAccountId === selectedAccount.id;
 
-    return { color: 'error.light', sign: '-', amount: transaction.amount };
+  const getCardData = (): { color: string; sign: '+' | '-'; amount: number } => {
+    if (isSendingAccountCard) {
+      return { color: 'error.light', sign: '-', amount: transaction.amount };
+    } else {
+      return { color: 'success.light', sign: '+', amount: transaction.toAccountAmount };
+    }
   };
 
   const cardData = getCardData();
@@ -112,7 +114,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
               <MenuItem
                 onClick={() => {
                   handleCloseMenu();
-                  handleEditTransactionClick();
+                  handleEditTransferClick();
                 }}
               >
                 Edit
@@ -124,36 +126,26 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
           </Box>
         </Box>
 
+        <Box display="flex" alignItems="center" gap={1} width="100%" mb={2}>
+          <Typography
+            width="15%"
+            textOverflow="ellipsis"
+            noWrap
+            color="GrayText"
+            fontWeight={600}
+            variant="body2"
+          >
+            {isSendingAccountCard ? 'To account' : 'From account'}
+          </Typography>
+          <Typography variant="body2">
+            {isSendingAccountCard ? transaction.toAccount.name : transaction.fromAccount.name}
+          </Typography>
+        </Box>
+
         <Box display="flex" alignItems="center">
           <Box flex={1}>
             {isShowingMore && (
               <Box display="flex" flexDirection="column" gap={2} width="100%" mb={3}>
-                <Box display="flex" alignItems="center" gap={1} width="100%">
-                  <Typography
-                    width="15%"
-                    textOverflow="ellipsis"
-                    noWrap
-                    color="GrayText"
-                    fontWeight={600}
-                    variant="body2"
-                  >
-                    Category
-                  </Typography>{' '}
-                  <Typography variant="body2">{transaction.category?.name ?? '-'}</Typography>
-                </Box>
-                <Box display="flex" alignItems="center" gap={1} width="100%">
-                  <Typography
-                    width="15%"
-                    noWrap
-                    textOverflow="ellipsis"
-                    color="GrayText"
-                    fontWeight={600}
-                    variant="body2"
-                  >
-                    Payee
-                  </Typography>
-                  <Typography variant="body2">{transaction.payee?.name ?? '-'}</Typography>
-                </Box>
                 <Box display="flex" alignItems="center" gap={1} width="100%">
                   <Typography
                     width="15%"
@@ -166,30 +158,8 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                     Description
                   </Typography>
                   <Typography variant="body2">
-                    {' '}
                     {transaction.description ? transaction.description : '-'}
                   </Typography>
-                </Box>
-                <Box display="flex" alignItems="center" gap={1} width="100%">
-                  <Typography
-                    width="15%"
-                    textOverflow="ellipsis"
-                    noWrap
-                    color="GrayText"
-                    fontWeight={600}
-                    variant="body2"
-                  >
-                    Tags
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    {transaction.tags.map((tagOnTransaction) => (
-                      <Chip
-                        key={tagOnTransaction.id}
-                        label={tagOnTransaction.tag.name}
-                        size="small"
-                      />
-                    ))}
-                  </Box>
                 </Box>
               </Box>
             )}
@@ -211,19 +181,19 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
         </Box>
       </CardContent>
 
-      <UpdateTransactionModal
-        isOpen={isUpdateTransactionModalOpen}
-        onClose={() => setIsUpdateTransactionModalOpen(false)}
-        transaction={transaction as FormTransactionType}
+      <UpdateTransferModal
+        isOpen={isUpdateTransferModalOpen}
+        onClose={() => setIsUpdateTransferModalOpen(false)}
+        transaction={transaction as FormTransferType}
         accounts={accounts}
       />
       <ActionConfirmationModal
         isOpen={isConfirmationModalOpen}
         onClose={() => setIsConfirmationModalOpen(false)}
-        title="Are you sure, you'd like to delete this transaction?"
-        description="This action will cause current account balance change."
-        onConfirm={removeTransaction}
-        loading={isDeleteTransactionLoading}
+        title="Are you sure, you'd like to delete this transfer?"
+        description="This action will case the balance change on both accounts of this transfer."
+        onConfirm={removeTransfer}
+        loading={isDeleteTransferLoading}
       />
     </Card>
   );

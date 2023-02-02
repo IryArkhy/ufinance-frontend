@@ -1,6 +1,6 @@
 import axiosInstance from '../axios';
 
-import { TotalBalance } from './accounts';
+import { Account, TotalBalance } from './accounts';
 import { Category } from './categories';
 import { Payee } from './payees';
 import { Tag } from './tags';
@@ -9,7 +9,7 @@ export type TransactionType = 'WITHDRAWAL' | 'DEPOSIT' | 'TRANSFER';
 
 export type TagOnTransaction = {
   id: string;
-  assignedAt: '2023-02-01T20:42:10.876Z';
+  assignedAt: string;
   tagId: string;
   transactionId: string;
   tag: Tag;
@@ -32,6 +32,8 @@ export type Transaction = {
   category: Category | null;
   payee: Payee | null;
   tags: TagOnTransaction[];
+  fromAccount: Account;
+  toAccount: Account;
 };
 
 export type CreateTransactionReqBody = {
@@ -39,10 +41,10 @@ export type CreateTransactionReqBody = {
   amount: number;
   date: string;
   transactionType: Exclude<TransactionType, 'TRANSFER'>;
-  description: string;
-  tagNames: string[];
-  categoryId: string;
-  payeeId: string;
+  description?: string;
+  tagNames?: string[];
+  categoryId?: string;
+  payeeId?: string;
 };
 
 export type CreateTransactionResponse = {
@@ -76,9 +78,71 @@ export const getTransactions = async (
   );
 };
 
-// export const createTransaction = async () => {};
-// export const createTransfer = async () => {};
-// export const updateTransaction = async () => {};
-// export const updateTransfer = async () => {};
-// export const deleteTransaction = async () => {};
-// export const deleteTransfer = async () => {};
+export type CreateTransferReqBody = {
+  fromAccountId: string;
+  toAccountId: string;
+  fromAccountAmount: number;
+  toAccountAmount: number;
+  date: string; // ISOstring;
+  description?: string;
+};
+
+export type CreateTransferResponse = {
+  transaction: Transaction;
+
+  fromAccount: {
+    id: Account['id'];
+    balance: Account['balance'];
+  };
+  toAccount: {
+    id: Account['id'];
+    balance: Account['balance'];
+  };
+};
+
+export const createTransaction = async (data: CreateTransactionReqBody) => {
+  return axiosInstance.post<CreateTransactionResponse>('api/transactions', data);
+};
+
+export const createTransfer = async (data: CreateTransferReqBody) => {
+  return axiosInstance.post<CreateTransferResponse>('api/transactions/transfer', data);
+};
+
+export type UpdateTransactionReqBody = CreateTransactionReqBody;
+
+export type UpdateTransactionResponse = {
+  transaction: Transaction;
+  totalBalance: TotalBalance;
+};
+
+export const updateTransaction = async (data: UpdateTransactionReqBody, id: string) => {
+  return axiosInstance.put<UpdateTransactionResponse>(`api/transactions/${id}`, data);
+};
+
+export type UpdateTransferReqBody = CreateTransferReqBody;
+
+export type UpdateTransferResponse = {
+  transaction: Transaction;
+  totalBalance: TotalBalance;
+};
+
+export const updateTransfer = async (data: UpdateTransferReqBody, id: string) => {
+  return axiosInstance.put<UpdateTransferResponse>(`api/transactions/transfer/${id}`, data);
+};
+
+export type DeleteTransactionResponse = {
+  transaction: Transaction;
+  totalBalance: TotalBalance;
+};
+
+export type DeleteTransferResponse = DeleteTransactionResponse;
+
+export const deleteTransaction = async (accountId: string, id: string) => {
+  return axiosInstance.delete<DeleteTransactionResponse>(`api/transactions/${accountId}/${id}`);
+};
+
+export const deleteTransfer = async (accountId: string, id: string) => {
+  return axiosInstance.delete<DeleteTransferResponse>(
+    `api/transactions/transfer/${accountId}/${id}`,
+  );
+};

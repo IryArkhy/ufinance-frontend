@@ -55,7 +55,7 @@ export function AccountModal({
   const iconOptions = Object.keys(ACCOUNT_ICONS) as IconOption[];
   const isCreate = Boolean(!propsValues);
 
-  const currencyOptions = ['UAH', 'USD', 'EUR', 'BTC', 'ETH'] as AvailableCurrency[];
+  const currencyOptions: AvailableCurrency[] = ['UAH', 'USD', 'EUR', 'BTC', 'ETH'];
 
   const defaultValues = {
     name: '',

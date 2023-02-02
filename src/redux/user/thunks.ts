@@ -66,3 +66,29 @@ export const fetchUser = createAsyncThunk<User, any, { rejectValue: ErrorData }>
     }
   },
 );
+
+export type UpdatePasswordReqBody = {
+  oldPassword: string;
+  newPassword: string;
+};
+
+export type UpdatePasswordResponse = {
+  token: string;
+};
+
+export const changePassword = createAsyncThunk<
+  UpdatePasswordResponse,
+  UpdatePasswordReqBody,
+  { rejectValue: ErrorData }
+>('user/changePassword', async (data, thunkApi) => {
+  try {
+    const res = await axiosInstance.patch<{ token: string }>('api/user/password', {
+      oldPassword: data.oldPassword,
+      newPassword: data.newPassword,
+    });
+    return res.data;
+  } catch (error) {
+    const errorPayload = handleError(error);
+    return thunkApi.rejectWithValue(errorPayload);
+  }
+});

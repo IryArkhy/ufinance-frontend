@@ -2,7 +2,7 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 import { ErrorData } from '../../lib/api/utils';
 
-import { fetchUser, login, signUp } from './thunks';
+import { changePassword, fetchUser, login, signUp } from './thunks';
 import { User } from './types';
 
 type UserSliceState = {
@@ -79,6 +79,20 @@ export const userSlice = createSlice({
     });
 
     builder.addCase(signUp.rejected, (state, action) => {
+      state.error = action.payload ?? null;
+      state.loading = 'failed';
+    });
+
+    builder.addCase(changePassword.fulfilled, (state, { payload }) => {
+      state.token = payload.token;
+      state.loading = 'succeeded';
+    });
+
+    builder.addCase(changePassword.pending, (state) => {
+      state.loading = 'pending';
+    });
+
+    builder.addCase(changePassword.rejected, (state, action) => {
       state.error = action.payload ?? null;
       state.loading = 'failed';
     });

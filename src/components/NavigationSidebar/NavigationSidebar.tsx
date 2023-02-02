@@ -1,7 +1,6 @@
 import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
-import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import SettingsSuggestRoundedIcon from '@mui/icons-material/SettingsSuggestRounded';
 import {
@@ -50,11 +49,6 @@ export function NavigationSidebar() {
       title: 'Налаштування',
       Icon: SettingsSuggestRoundedIcon,
       navigateTo: ROUTES.SETTINGS,
-    },
-    {
-      title: 'Допомога',
-      Icon: InfoRoundedIcon,
-      navigateTo: ROUTES.SUPPORT,
     },
   ];
 

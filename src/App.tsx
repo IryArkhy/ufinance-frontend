@@ -19,7 +19,6 @@ import {
   DashboardView,
   ProfileView,
   SettingsView,
-  SupportView,
 } from './pages';
 import { useSelector } from './redux/hooks';
 import { persistor, store } from './redux/store';
@@ -58,14 +57,7 @@ function Router() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path={ROUTES.SUPPORT}
-          element={
-            <ProtectedRoute token={token}>
-              <SupportView />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path={ROUTES.SETTINGS}
           element={
