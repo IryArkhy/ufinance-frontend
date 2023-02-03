@@ -13,8 +13,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { isEqual } from 'lodash';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
-import { Account } from '../../../../lib/api/accounts';
 import { Transaction, TransactionType } from '../../../../lib/api/transactions';
+import { getAccounts } from '../../../../redux/accounts/selectors';
 import { getCategories } from '../../../../redux/categories/selectors';
 import { useSelector } from '../../../../redux/hooks';
 import { getPayees } from '../../../../redux/payees/selectors';
@@ -29,19 +29,19 @@ export type FormTransactionType = Omit<Transaction, 'type'> & {
 
 export type TransactionFormProps = {
   formData: UseFormReturn<TransactionFormValues, any>;
-  accounts: Account[];
   isAllOptionsVisible: boolean;
 };
 
-export function TransactionForm({ formData, accounts, isAllOptionsVisible }: TransactionFormProps) {
+export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFormProps) {
   const { categories } = useSelector(getCategories);
   const { payees } = useSelector(getPayees);
   const { tags } = useSelector(getTags);
+  const accounts = useSelector(getAccounts);
 
   const categoryOptions = categories.map(getOption);
   const payeeOptions = payees.map(getOption);
   const tagsOptions = tags.map(getOption);
-  const accountsOptions = accounts.map(getAccountOption);
+  const accountsOptions = accounts.data.map(getAccountOption);
 
   const { control, watch } = formData;
 
@@ -49,6 +49,12 @@ export function TransactionForm({ formData, accounts, isAllOptionsVisible }: Tra
 
   return (
     <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
+      <Typography
+        variant="caption"
+        color={watchAccount.balance > 0 ? 'success.light' : 'error.light'}
+      >
+        Current balance: {`${watchAccount.balance} ${watchAccount.currency}`}
+      </Typography>
       <Controller
         name="account"
         control={control}

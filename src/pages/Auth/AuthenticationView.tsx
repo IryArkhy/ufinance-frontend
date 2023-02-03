@@ -26,7 +26,8 @@ import { ReactComponent as Logo } from '../../assets/logo-no-background.svg';
 import { ErrorData } from '../../lib/api/utils';
 import { NotificationContext } from '../../lib/notifications';
 import { ROUTES } from '../../lib/router';
-import { useDispatch } from '../../redux/hooks';
+import { useDispatch, useSelector } from '../../redux/hooks';
+import { getToken } from '../../redux/user/selectors';
 import { login, signUp } from '../../redux/user/thunks';
 
 type LoginFormValues = {
@@ -44,6 +45,7 @@ export function AuthenticationView() {
   const { palette } = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const token = useSelector(getToken);
 
   const [mode, setMode] = React.useState('login');
 
@@ -69,6 +71,12 @@ export function AuthenticationView() {
 
   const { notifyError } = React.useContext(NotificationContext);
 
+  React.useEffect(() => {
+    if (token) {
+      navigate(ROUTES.DASHBOARD);
+    }
+  }, [token]);
+
   const handlePasswordVisibility = () => {
     setIsPasswordVisible((current) => !current);
   };
@@ -88,8 +96,6 @@ export function AuthenticationView() {
 
     if (resultAction.meta.requestStatus === 'rejected') {
       notifyError((resultAction.payload as ErrorData).message);
-    } else {
-      navigate(ROUTES.DASHBOARD);
     }
   };
 

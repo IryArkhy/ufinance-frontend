@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Divider,
   IconButton,
   Menu,
@@ -17,7 +16,12 @@ import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
 import { Account } from '../../../lib/api/accounts';
-import { Transaction, deleteTransaction, deleteTransfer } from '../../../lib/api/transactions';
+import { Transaction } from '../../../lib/api/transactions';
+import { ErrorData } from '../../../lib/api/utils';
+import { NotificationContext } from '../../../lib/notifications';
+import { removeTransfer } from '../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../redux/balance/thunks';
+import { useDispatch } from '../../../redux/hooks';
 
 import { FormTransferType, UpdateTransferModal } from './TransactionFormsModals';
 
@@ -27,10 +31,9 @@ interface TransferCardProps {
   accounts: Account[];
 }
 
-// TODO: separate card for transaction and transfer
-// TODO: add tags
-
 export function TransferCard({ transaction, selectedAccount, accounts }: TransferCardProps) {
+  const dispatch = useDispatch();
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const [isShowingMore, setIsShowingMore] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [isUpdateTransferModalOpen, setIsUpdateTransferModalOpen] = React.useState(false);
@@ -49,16 +52,23 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
     setIsUpdateTransferModalOpen(true);
   };
 
-  const removeTransfer = async () => {
-    try {
-      setIsDeleteTransferLoading(true);
-      await deleteTransfer(transaction.fromAccountId, transaction.id);
+  const deleteTransfer = async () => {
+    setIsDeleteTransferLoading(true);
+
+    const resultAction = await dispatch(
+      removeTransfer({ accountId: transaction.fromAccountId, id: transaction.id }),
+    );
+    setIsConfirmationModalOpen(false);
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      await dispatch(fetchBalance());
+
+      notifySuccess('Transfer deleted');
       setIsConfirmationModalOpen(false);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsDeleteTransferLoading(false);
     }
+    setIsDeleteTransferLoading(false);
   };
 
   const handleDeleteMenuItemClick = () => {
@@ -192,7 +202,7 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
         onClose={() => setIsConfirmationModalOpen(false)}
         title="Are you sure, you'd like to delete this transfer?"
         description="This action will case the balance change on both accounts of this transfer."
-        onConfirm={removeTransfer}
+        onConfirm={deleteTransfer}
         loading={isDeleteTransferLoading}
       />
     </Card>

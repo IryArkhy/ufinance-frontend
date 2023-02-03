@@ -32,6 +32,8 @@ export const userSlice = createSlice({
     clearUser: (state) => {
       state.data = null;
       state.token = null;
+      state.error = null;
+      state.loading = 'idle';
     },
     setLoading: (state, action: PayloadAction<UserSliceState['loading']>) => {
       state.loading = action.payload;

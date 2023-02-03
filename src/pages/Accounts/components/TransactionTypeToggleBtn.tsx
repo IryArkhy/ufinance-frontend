@@ -12,11 +12,13 @@ interface TransactionTypeToggleBtnProps {
   value: TransactionType;
   onChange: (value: TransactionType) => void;
   options: TransactionType[];
+  isTransferDisabled?: boolean;
 }
 export function TransactionTypeToggleBtn({
   value,
   onChange,
   options,
+  isTransferDisabled,
 }: TransactionTypeToggleBtnProps) {
   const handleChange = (_: React.MouseEvent<HTMLElement>, value: TransactionType) => {
     onChange(value);
@@ -55,7 +57,12 @@ export function TransactionTypeToggleBtn({
       sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
       {options.map((type) => (
-        <ToggleButton key={type} value={type} aria-label="centered">
+        <ToggleButton
+          key={type}
+          value={type}
+          aria-label="centered"
+          disabled={type === 'TRANSFER' && isTransferDisabled}
+        >
           {getIcon(type)}
         </ToggleButton>
       ))}

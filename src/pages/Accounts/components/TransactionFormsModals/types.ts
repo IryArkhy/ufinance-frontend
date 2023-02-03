@@ -10,6 +10,7 @@ export type AccountOption = {
   label: string;
   value: string;
   currency: AvailableCurrency;
+  balance: number;
 };
 
 export type TransactionFormValues = {

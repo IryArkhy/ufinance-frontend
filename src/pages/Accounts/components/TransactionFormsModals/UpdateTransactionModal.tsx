@@ -26,10 +26,13 @@ import {
   Transaction,
   TransactionType,
   UpdateTransactionReqBody,
-  updateTransaction,
 } from '../../../../lib/api/transactions';
+import { ErrorData } from '../../../../lib/api/utils';
+import { NotificationContext } from '../../../../lib/notifications';
+import { editTransaction, fetchAccounts } from '../../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../../redux/balance/thunks';
 import { getCategories } from '../../../../redux/categories/selectors';
-import { useSelector } from '../../../../redux/hooks';
+import { useDispatch, useSelector } from '../../../../redux/hooks';
 import { getPayees } from '../../../../redux/payees/selectors';
 import { getTags } from '../../../../redux/tags/selectors';
 import { TransactionTypeToggleBtn } from '../TransactionTypeToggleBtn';
@@ -57,7 +60,10 @@ export function UpdateTransactionModal({
   const { categories } = useSelector(getCategories);
   const { payees } = useSelector(getPayees);
   const { tags } = useSelector(getTags);
+  const dispatch = useDispatch();
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const [isAllOptionsVisible, setIsAllOptionsVisible] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const categoryOptions = categories.map(getOption);
   const payeeOptions = payees.map(getOption);
@@ -76,19 +82,35 @@ export function UpdateTransactionModal({
 
   const watchAccount = watch('account');
 
+  const handleUpdateTransaction = async (values: UpdateTransactionReqBody) => {
+    setIsLoading(true);
+    const resultAction = await dispatch(editTransaction({ data: values, id: transaction.id }));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+      setIsLoading(false);
+    } else {
+      await dispatch(fetchBalance());
+      notifySuccess('Updated');
+      setIsLoading(false);
+      onClose();
+    }
+  };
+
   const handleSubmit = async (values: TransactionFormValues) => {
     const body: UpdateTransactionReqBody = {
       fromAccountId: values.account.value,
       amount: values.amount,
       date: values.date.toISOString(),
       transactionType: values.transactionType,
-      categoryId: values.category.value ?? undefined,
-      payeeId: values.payee.value ?? undefined,
-      description: values.description ?? undefined,
+      categoryId: values.category.value || undefined,
+      payeeId: values.payee.value || undefined,
+      description: values.description || undefined,
       tagNames: values.tags.map((t) => t.label),
     };
 
-    await updateTransaction(body, transaction.id);
+    await handleUpdateTransaction(body);
+    await dispatch(fetchAccounts());
   };
 
   return (
@@ -109,6 +131,12 @@ export function UpdateTransactionModal({
               </FormControl>
             )}
           />
+          <Typography
+            variant="caption"
+            color={watchAccount.balance > 0 ? 'success.light' : 'error.light'}
+          >
+            Current balance: {`${watchAccount.balance} ${watchAccount.currency}`}
+          </Typography>
           <Controller
             name="account"
             control={control}
@@ -262,8 +290,10 @@ export function UpdateTransactionModal({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton onClick={onSubmit(handleSubmit)} color="success">
+        <Button disabled={isLoading} onClick={onClose}>
+          Cancel
+        </Button>
+        <LoadingButton loading={isLoading} onClick={onSubmit(handleSubmit)} color="success">
           Submit
         </LoadingButton>
       </DialogActions>

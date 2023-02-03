@@ -17,7 +17,12 @@ import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
 import { Account } from '../../../lib/api/accounts';
-import { Transaction, deleteTransaction } from '../../../lib/api/transactions';
+import { Transaction } from '../../../lib/api/transactions';
+import { ErrorData } from '../../../lib/api/utils';
+import { NotificationContext } from '../../../lib/notifications';
+import { removeTransaction } from '../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../redux/balance/thunks';
+import { useDispatch } from '../../../redux/hooks';
 
 import { FormTransactionType, UpdateTransactionModal } from './TransactionFormsModals';
 
@@ -27,10 +32,9 @@ interface TransactionCardProps {
   accounts: Account[];
 }
 
-// TODO: separate card for transaction and transfer
-// TODO: add tags
-
 export function TransactionCard({ transaction, accounts }: TransactionCardProps) {
+  const dispatch = useDispatch();
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const [isShowingMore, setIsShowingMore] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [isUpdateTransactionModalOpen, setIsUpdateTransactionModalOpen] = React.useState(false);
@@ -49,16 +53,23 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
     setIsUpdateTransactionModalOpen(true);
   };
 
-  const removeTransaction = async () => {
-    try {
-      setIsDeleteTransactionLoading(true);
-      await deleteTransaction(transaction.fromAccountId, transaction.id);
+  const deleteTransaction = async () => {
+    setIsDeleteTransactionLoading(true);
+
+    const resultAction = await dispatch(
+      removeTransaction({ accountId: transaction.fromAccountId, id: transaction.id }),
+    );
+    setIsConfirmationModalOpen(false);
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      await dispatch(fetchBalance());
+
+      notifySuccess('Transaction deleted');
       setIsConfirmationModalOpen(false);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsDeleteTransactionLoading(false);
     }
+    setIsDeleteTransactionLoading(false);
   };
 
   const handleDeleteMenuItemClick = () => {
@@ -166,31 +177,32 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                     Description
                   </Typography>
                   <Typography variant="body2">
-                    {' '}
                     {transaction.description ? transaction.description : '-'}
                   </Typography>
                 </Box>
-                <Box display="flex" alignItems="center" gap={1} width="100%">
-                  <Typography
-                    width="15%"
-                    textOverflow="ellipsis"
-                    noWrap
-                    color="GrayText"
-                    fontWeight={600}
-                    variant="body2"
-                  >
-                    Tags
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    {transaction.tags.map((tagOnTransaction) => (
-                      <Chip
-                        key={tagOnTransaction.id}
-                        label={tagOnTransaction.tag.name}
-                        size="small"
-                      />
-                    ))}
+                {transaction.tags && (
+                  <Box display="flex" alignItems="center" gap={1} width="100%">
+                    <Typography
+                      width="15%"
+                      textOverflow="ellipsis"
+                      noWrap
+                      color="GrayText"
+                      fontWeight={600}
+                      variant="body2"
+                    >
+                      Tags
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      {transaction.tags.map((tagOnTransaction) => (
+                        <Chip
+                          key={tagOnTransaction.id}
+                          label={tagOnTransaction.tag.name}
+                          size="small"
+                        />
+                      ))}
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </Box>
             )}
             <Box display="flex" alignItems="center" justifyContent="flex-start">
@@ -222,7 +234,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
         onClose={() => setIsConfirmationModalOpen(false)}
         title="Are you sure, you'd like to delete this transaction?"
         description="This action will cause current account balance change."
-        onConfirm={removeTransaction}
+        onConfirm={deleteTransaction}
         loading={isDeleteTransactionLoading}
       />
     </Card>

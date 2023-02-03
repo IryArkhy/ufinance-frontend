@@ -32,6 +32,12 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
 
   return (
     <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
+      <Typography
+        variant="caption"
+        color={watchSendingAccount.balance > 0 ? 'success.light' : 'error.light'}
+      >
+        Current balance: {`${watchSendingAccount.balance} ${watchSendingAccount.currency}`}
+      </Typography>
       <Controller
         name="sendingAccount"
         control={control}

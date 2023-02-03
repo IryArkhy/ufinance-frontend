@@ -13,27 +13,35 @@ import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
 import { Account } from '../../../lib/api/accounts';
+import { ErrorData } from '../../../lib/api/utils';
+import { NotificationContext } from '../../../lib/notifications';
+import { setSelectedAccount } from '../../../redux/accounts/accountsSlice';
+import { getAccounts } from '../../../redux/accounts/selectors';
+import { removeAccount } from '../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../redux/balance/thunks';
+import { useDispatch, useSelector } from '../../../redux/hooks';
+import { AccountIconsNames } from '../types';
 import { ACCOUNT_ICONS } from '../utils';
+
+import { AccountModal } from './AccountModal';
 
 interface AccountCardProps {
   account: Account;
   isSelected: boolean;
   onCardClick: (account: Account) => void;
-  onEditAccountClick: () => void;
-  onDeleteAccount: (accountId: string) => Promise<void>;
 }
 
-export function AccountCard({
-  account,
-  isSelected,
-  onCardClick,
-  onEditAccountClick,
-  onDeleteAccount,
-}: AccountCardProps) {
-  const { Icon, color } = ACCOUNT_ICONS[account.icon as keyof typeof ACCOUNT_ICONS];
+export function AccountCard({ account, onCardClick, isSelected }: AccountCardProps) {
+  const dispatch = useDispatch();
+  const accounts = useSelector(getAccounts);
+
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [isUpdateAccountModalOpen, setIsUpdateAccountModalOpen] = React.useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = React.useState(false);
   const [isDeleteAccountLoading, setIsDeleteAcountLoading] = React.useState(false);
+
+  const { Icon, color } = ACCOUNT_ICONS[account.icon as keyof typeof ACCOUNT_ICONS];
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -43,16 +51,20 @@ export function AccountCard({
     setAnchorEl(null);
   };
 
-  const deleteAccount = () => {
+  const handleDeleteAccount = async () => {
     setIsDeleteAcountLoading(true);
-    onDeleteAccount(account.id)
-      .then(() => {
-        setIsConfirmationModalOpen(false);
-      })
-      .catch(console.log)
-      .finally(() => {
-        setIsDeleteAcountLoading(false);
-      });
+    const resultAction = await dispatch(removeAccount(account.id));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      await dispatch(fetchBalance());
+      dispatch(setSelectedAccount(accounts.data[0]));
+
+      notifySuccess('Account deleted');
+      setIsConfirmationModalOpen(false);
+    }
+    setIsDeleteAcountLoading(false);
   };
 
   const handleDeleteMenuItemClick = () => {
@@ -101,7 +113,7 @@ export function AccountCard({
               <MenuItem
                 onClick={() => {
                   handleCloseMenu();
-                  onEditAccountClick();
+                  setIsUpdateAccountModalOpen(true);
                 }}
               >
                 Edit
@@ -131,8 +143,20 @@ export function AccountCard({
         onClose={() => setIsConfirmationModalOpen(false)}
         title="Are you sure, you'd like to delete account?"
         description="This action will case deletion of all transactions that you looged as well as modifing your account balance."
-        onConfirm={deleteAccount}
+        onConfirm={handleDeleteAccount}
         loading={isDeleteAccountLoading}
+      />
+      <AccountModal
+        accountId={account.id}
+        isOpen={isUpdateAccountModalOpen}
+        onClose={() => setIsUpdateAccountModalOpen(false)}
+        defaultValues={{
+          balance: account.balance,
+          name: account.name,
+          currency: account.currency,
+          isCredit: account.isCredit,
+          icon: AccountIconsNames[account.icon as keyof typeof AccountIconsNames],
+        }}
       />
     </>
   );

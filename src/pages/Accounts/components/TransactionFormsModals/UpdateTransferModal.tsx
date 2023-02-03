@@ -24,8 +24,12 @@ import {
   Transaction,
   TransactionType,
   UpdateTransferReqBody,
-  updateTransfer,
 } from '../../../../lib/api/transactions';
+import { ErrorData } from '../../../../lib/api/utils';
+import { NotificationContext } from '../../../../lib/notifications';
+import { editTransfer, fetchAccounts } from '../../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../../redux/balance/thunks';
+import { useDispatch } from '../../../../redux/hooks';
 import { TransactionTypeToggleBtn } from '../TransactionTypeToggleBtn';
 
 import { TransferFormValues } from './types';
@@ -48,9 +52,12 @@ export function UpdateTransferModal({
   onClose,
   accounts,
 }: UpdateTransferModalProps) {
+  const dispatch = useDispatch();
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [isAllOptionsVisible, setIsAllOptionsVisible] = React.useState(false);
   const accountsOptions = accounts.map(getAccountOption);
-  const defaultValues = getDefaultTransferFormValues(accountsOptions, transaction);
+  const defaultValues = getDefaultTransferFormValues(accountsOptions, undefined, transaction);
 
   const {
     control,
@@ -63,6 +70,21 @@ export function UpdateTransferModal({
   const watchSendingAccountValue = watch('sendingAccount');
   const watchReceivingAccountValue = watch('receivingAccount');
 
+  const handleUpdateTransnsfer = async (values: UpdateTransferReqBody) => {
+    setIsLoading(true);
+    const resultAction = await dispatch(editTransfer({ data: values, id: transaction.id }));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+      setIsLoading(false);
+    } else {
+      await dispatch(fetchBalance());
+      notifySuccess('Updated');
+      setIsLoading(false);
+      onClose();
+    }
+  };
+
   const handleSubmit = async (values: TransferFormValues) => {
     const sameCurrencies = values.sendingAccount.currency === values.receivingAccount.currency;
 
@@ -72,10 +94,11 @@ export function UpdateTransferModal({
       fromAccountAmount: values.fromAmount,
       toAccountAmount: sameCurrencies ? values.fromAmount : values.toAmount,
       date: values.date.toISOString(),
-      description: values.description ?? undefined,
+      description: values.description,
     };
 
-    await updateTransfer(body, transaction.id);
+    await handleUpdateTransnsfer(body);
+    await dispatch(fetchAccounts());
   };
 
   return (
@@ -95,6 +118,13 @@ export function UpdateTransferModal({
               </FormControl>
             )}
           />
+          <Typography
+            variant="caption"
+            color={watchSendingAccountValue.balance > 0 ? 'success.light' : 'error.light'}
+          >
+            Current balance:{' '}
+            {`${watchSendingAccountValue.balance} ${watchSendingAccountValue.currency}`}
+          </Typography>
           <Controller
             name="sendingAccount"
             control={control}
@@ -238,8 +268,10 @@ export function UpdateTransferModal({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton onClick={onSubmit(handleSubmit)} color="success">
+        <Button disabled={isLoading} onClick={onClose}>
+          Cancel
+        </Button>
+        <LoadingButton loading={isLoading} onClick={onSubmit(handleSubmit)} color="success">
           Submit
         </LoadingButton>
       </DialogActions>

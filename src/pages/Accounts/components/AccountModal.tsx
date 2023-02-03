@@ -20,11 +20,15 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import {
-  Account,
   AvailableCurrency,
-  createAccount,
-  updateAccount,
+  CreateAccountReqBody,
+  UpdateAccountReqBody,
 } from '../../../lib/api/accounts';
+import { ErrorData } from '../../../lib/api/utils';
+import { NotificationContext } from '../../../lib/notifications';
+import { createNewAccount, editAccount } from '../../../redux/accounts/thunks';
+import { fetchBalance } from '../../../redux/balance/thunks';
+import { useDispatch } from '../../../redux/hooks';
 import { AccountIconsNames } from '../types';
 import { ACCOUNT_ICONS } from '../utils';
 
@@ -39,7 +43,6 @@ type FormValues = {
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmitFinish: (account: Account) => void;
   defaultValues?: FormValues;
   accountId?: string;
 }
@@ -49,12 +52,14 @@ export function AccountModal({
   isOpen,
   onClose,
   defaultValues: propsValues,
-  onSubmitFinish,
 }: AccountModalProps) {
+  const dispatch = useDispatch();
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
+  const [isLoading, setIsLoading] = React.useState(false);
+
   type IconOption = keyof typeof ACCOUNT_ICONS;
   const iconOptions = Object.keys(ACCOUNT_ICONS) as IconOption[];
   const isCreate = Boolean(!propsValues);
-
   const currencyOptions: AvailableCurrency[] = ['UAH', 'USD', 'EUR', 'BTC', 'ETH'];
 
   const defaultValues = {
@@ -72,30 +77,49 @@ export function AccountModal({
   } = useForm<FormValues>({
     defaultValues,
   });
-  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleCreateAccount = async (values: CreateAccountReqBody) => {
+    const resultAction = await dispatch(createNewAccount(values));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      await dispatch(fetchBalance());
+      notifySuccess('Account created');
+    }
+  };
+
+  const handleUpdateAccount = async (values: UpdateAccountReqBody) => {
+    if (!accountId) {
+      console.error('Account id is not provided');
+      return;
+    }
+
+    const resultAction = await dispatch(editAccount({ data: values, accountId }));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+    } else {
+      notifySuccess('Account updated');
+    }
+  };
 
   const handleSubmit = async (values: FormValues) => {
-    try {
-      setIsLoading(true);
-      if (isCreate) {
-        const response = await createAccount({
-          ...values,
-          balance: typeof values.balance === 'string' ? parseFloat(values.balance) : values.balance,
-        });
-        onSubmitFinish(response.data.account);
-      } else {
-        if (accountId) {
-          const { isCredit, icon, name } = values;
-          const response = await updateAccount(accountId, { isCredit, icon, name });
-          onSubmitFinish(response.data.account);
-        }
-      }
-      onClose();
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
+    setIsLoading(true);
+    if (isCreate) {
+      const balance =
+        typeof values.balance === 'string' ? parseFloat(values.balance) : values.balance;
+
+      await handleCreateAccount({
+        ...values,
+        balance,
+      });
+    } else {
+      await handleUpdateAccount(values);
     }
+
+    setIsLoading(false);
+    onClose();
   };
 
   React.useEffect(() => {

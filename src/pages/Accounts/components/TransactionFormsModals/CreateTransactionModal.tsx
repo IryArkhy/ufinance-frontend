@@ -12,14 +12,16 @@ import {
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
-import { Account } from '../../../../lib/api/accounts';
 import {
   CreateTransactionReqBody,
   CreateTransferReqBody,
   TransactionType,
-  createTransaction,
-  createTransfer,
 } from '../../../../lib/api/transactions';
+import { ErrorData } from '../../../../lib/api/utils';
+import { NotificationContext } from '../../../../lib/notifications';
+import { getAccounts, getSelectedAccount } from '../../../../redux/accounts/selectors';
+import { createNewTransaction, createNewTransfer } from '../../../../redux/accounts/thunks';
+import { useDispatch, useSelector } from '../../../../redux/hooks';
 import { TransactionTypeToggleBtn } from '../TransactionTypeToggleBtn';
 
 import { TransactionForm } from './TransactionForm';
@@ -29,52 +31,59 @@ import {
   getAccountOption,
   getDefaultTransactionFormValues,
   getDefaultTransferFormValues,
-  getOption,
 } from './utils';
 
 export type CreateTransactionModalProps = {
-  accounts: Account[];
   isOpen: boolean;
   onClose: () => void;
-  selectedAccount?: Account | null;
+  // setOffset: React.Dispatch<React.SetStateAction<number | null>>;
 };
 
 export function CreateTransactionModal({
-  accounts,
   isOpen,
   onClose,
-  selectedAccount,
-}: CreateTransactionModalProps) {
+}: // setOffset,
+CreateTransactionModalProps) {
+  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
+  const accounts = useSelector(getAccounts);
+  const selectedAccount = useSelector(getSelectedAccount);
+  const dispatch = useDispatch();
   const [isAllTransactionOptionsVisible, setIsAllTransactionOptionsVisible] = React.useState(false);
   const [isAllTransferOptionsVisible, setIsAllTransferOptionsVisible] = React.useState(false);
+  const accountsOptions = accounts.data.map(getAccountOption);
 
-  const accountsOptions = accounts.map(getAccountOption);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const transactionDefaultValues = getDefaultTransactionFormValues(
-    accountsOptions,
-    undefined,
-    selectedAccount,
-  );
-  const transferDefaultValues = getDefaultTransferFormValues(accountsOptions);
+  const transactionForm = useForm<TransactionFormValues>({
+    defaultValues: getDefaultTransactionFormValues(accountsOptions, undefined, selectedAccount),
+  });
+
+  const transferForm = useForm<TransferFormValues>({
+    defaultValues: getDefaultTransferFormValues(accountsOptions, selectedAccount ?? undefined),
+  });
 
   const transactionTypeForm = useForm<{ type: TransactionType }>({
     defaultValues: { type: 'WITHDRAWAL' },
   });
 
+  const resetFormValues = () => {
+    transactionTypeForm.reset({ type: 'WITHDRAWAL' });
+    transactionForm.reset(
+      getDefaultTransactionFormValues(accountsOptions, undefined, selectedAccount),
+    );
+    transferForm.reset(getDefaultTransferFormValues(accountsOptions, selectedAccount ?? undefined));
+  };
+
+  React.useEffect(() => {
+    resetFormValues();
+  }, [selectedAccount]);
+
   const watchedType = transactionTypeForm.watch('type');
 
-  const transactionForm = useForm<TransactionFormValues>({
-    defaultValues: transactionDefaultValues,
-  });
-
-  const transferForm = useForm<TransferFormValues>({
-    defaultValues: transferDefaultValues,
-  });
-
-  const createNewTransaction = async (values: TransactionFormValues) => {
+  const createTransaction = async (values: TransactionFormValues) => {
     const body: CreateTransactionReqBody = {
       fromAccountId: values.account.value,
-      amount: values.amount,
+      amount: typeof values.amount === 'string' ? parseFloat(values.amount) : values.amount,
       date: values.date.toISOString(),
       transactionType: watchedType as 'WITHDRAWAL' | 'DEPOSIT',
       categoryId: values.category.value || undefined,
@@ -83,30 +92,61 @@ export function CreateTransactionModal({
       tagNames: values.tags.map((t) => t.label),
     };
 
-    await createTransaction(body);
+    setIsLoading(true);
+    const resultAction = await dispatch(createNewTransaction(body));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+      setIsLoading(false);
+    } else {
+      notifySuccess('Created');
+      setIsLoading(false);
+      // setOffset((current) => (current ? current + 1 : current));
+      onClose();
+    }
   };
 
-  const createNewTransfer = async (values: TransferFormValues) => {
+  const createTransfer = async (values: TransferFormValues) => {
     const sameCurrencies = values.sendingAccount.currency === values.receivingAccount.currency;
+    const fromAmount =
+      typeof values.fromAmount === 'string' ? parseFloat(values.fromAmount) : values.fromAmount;
+    const toAmount = sameCurrencies ? values.fromAmount : values.toAmount;
+    const toAmountAsFloat = typeof toAmount === 'string' ? parseFloat(toAmount) : toAmount;
 
     const body: CreateTransferReqBody = {
       fromAccountId: values.sendingAccount.value,
       toAccountId: values.receivingAccount.value,
-      fromAccountAmount: values.fromAmount,
-      toAccountAmount: sameCurrencies ? values.fromAmount : values.toAmount,
+      fromAccountAmount: fromAmount,
+      toAccountAmount: toAmountAsFloat,
       date: values.date.toISOString(),
       description: values.description ?? undefined,
     };
 
-    await createTransfer(body);
+    setIsLoading(true);
+    const resultAction = await dispatch(createNewTransfer(body));
+
+    if (resultAction.meta.requestStatus === 'rejected') {
+      notifyError((resultAction.payload as ErrorData).message);
+      setIsLoading(false);
+    } else {
+      notifySuccess('Created');
+      setIsLoading(false);
+      // setOffset((current) => (current ? current + 1 : current));
+      onClose();
+    }
   };
 
   const returnSubmitFuntcion = () => {
     if (watchedType === 'TRANSFER') {
-      return transferForm.handleSubmit(createNewTransfer);
+      return transferForm.handleSubmit(createTransfer);
     } else {
-      return transactionForm.handleSubmit(createNewTransaction);
+      return transactionForm.handleSubmit(createTransaction);
     }
+  };
+
+  const handleClose = () => {
+    resetFormValues();
+    onClose();
   };
 
   return (
@@ -122,7 +162,8 @@ export function CreateTransactionModal({
                 <TransactionTypeToggleBtn
                   value={field.value}
                   onChange={field.onChange}
-                  options={['DEPOSIT', 'WITHDRAWAL', 'TRANSFER']}
+                  options={['WITHDRAWAL', 'DEPOSIT', 'TRANSFER']}
+                  isTransferDisabled={accounts.data.length <= 1}
                 />
               </FormControl>
             )}
@@ -130,13 +171,12 @@ export function CreateTransactionModal({
           {watchedType === 'TRANSFER' ? (
             <TransferForm
               formData={transferForm}
-              accounts={accounts}
+              accounts={accounts.data}
               isAllOptionsVisible={isAllTransferOptionsVisible}
             />
           ) : (
             <TransactionForm
               formData={transactionForm}
-              accounts={accounts}
               isAllOptionsVisible={isAllTransactionOptionsVisible}
             />
           )}
@@ -164,8 +204,10 @@ export function CreateTransactionModal({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <LoadingButton onClick={returnSubmitFuntcion()} color="success">
+        <Button disabled={isLoading} onClick={handleClose}>
+          Cancel
+        </Button>
+        <LoadingButton loading={isLoading} onClick={returnSubmitFuntcion()} color="success">
           Submit
         </LoadingButton>
       </DialogActions>

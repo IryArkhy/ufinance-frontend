@@ -30,6 +30,11 @@ export const categoriesSlice = createSlice({
     deleteCategory: (state, action: PayloadAction<{ id: string }>) => {
       state.categories = [...state.categories].filter((c) => c.id !== action.payload.id);
     },
+    resetState: (state) => {
+      state.categories = initialState.categories;
+      state.error = initialState.error;
+      state.loading = initialState.loading;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchCategories.fulfilled, (state, action) => {
@@ -73,6 +78,11 @@ export const categoriesSlice = createSlice({
   },
 });
 
-export const { setCategories, addCategory, deleteCategory } = categoriesSlice.actions;
+export const {
+  setCategories,
+  addCategory,
+  deleteCategory,
+  resetState: resetCategoriesState,
+} = categoriesSlice.actions;
 
 export const categoriesReducer = categoriesSlice.reducer;

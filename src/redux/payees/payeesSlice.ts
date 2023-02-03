@@ -30,6 +30,11 @@ export const payeesSlice = createSlice({
     deletePayee: (state, action: PayloadAction<{ id: string }>) => {
       state.payees = [...state.payees].filter((c) => c.id !== action.payload.id);
     },
+    resetState: (state) => {
+      state.payees = initialState.payees;
+      state.error = initialState.error;
+      state.loading = initialState.loading;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchPayees.fulfilled, (state, action) => {
@@ -73,6 +78,11 @@ export const payeesSlice = createSlice({
   },
 });
 
-export const { addPayee, deletePayee, setPayees } = payeesSlice.actions;
+export const {
+  addPayee,
+  deletePayee,
+  setPayees,
+  resetState: resetPayeesState,
+} = payeesSlice.actions;
 
 export const payeesReducer = payeesSlice.reducer;

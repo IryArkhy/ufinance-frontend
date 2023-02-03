@@ -30,6 +30,11 @@ export const tagsSlice = createSlice({
     deleteTag: (state, action: PayloadAction<{ id: string }>) => {
       state.tags = [...state.tags].filter((c) => c.id !== action.payload.id);
     },
+    resetState: (state) => {
+      state.tags = initialState.tags;
+      state.error = initialState.error;
+      state.loading = initialState.loading;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchTags.fulfilled, (state, action) => {
@@ -73,6 +78,6 @@ export const tagsSlice = createSlice({
   },
 });
 
-export const { setTgas, addTag, deleteTag } = tagsSlice.actions;
+export const { setTgas, addTag, deleteTag, resetState: resetTagsState } = tagsSlice.actions;
 
 export const tagsReducer = tagsSlice.reducer;

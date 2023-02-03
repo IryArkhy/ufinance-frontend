@@ -14,6 +14,7 @@ export const getAccountOption = (value: Account): AccountOption => ({
   label: value.name,
   value: value.id,
   currency: value.currency,
+  balance: value.balance,
 });
 
 export const getDefaultTransactionFormValues = (
@@ -24,9 +25,7 @@ export const getDefaultTransactionFormValues = (
   const defaultOption = { label: '', value: '' };
 
   const defaultFormValues: TransactionFormValues = {
-    account: selectedAccount
-      ? { ...getOption(selectedAccount), currency: selectedAccount.currency }
-      : accountOptions[0],
+    account: selectedAccount ? getAccountOption(selectedAccount) : accountOptions[0],
     amount: 0,
     category: { ...defaultOption },
     payee: { ...defaultOption },
@@ -44,19 +43,19 @@ export const getDefaultTransactionFormValues = (
   defaultFormValues.transactionType = transaction.type;
   defaultFormValues.date = new Date(transaction.date);
 
-  if (transaction.category) {
+  if (transaction?.category) {
     defaultFormValues.category = getOption(transaction.category);
   }
 
-  if (transaction.payee) {
+  if (transaction?.payee) {
     defaultFormValues.payee = getOption(transaction.payee);
   }
 
-  if (transaction.tags.length) {
+  if (transaction?.tags?.length) {
     defaultFormValues.tags = transaction.tags.map(({ tag }) => getOption(tag));
   }
 
-  if (transaction.description) {
+  if (transaction?.description) {
     defaultFormValues.description = transaction.description;
   }
 
@@ -65,11 +64,14 @@ export const getDefaultTransactionFormValues = (
 
 export const getDefaultTransferFormValues = (
   accountOptions: AccountOption[],
+  selectedAccount?: Account,
   transaction?: Transaction & { type: Extract<TransactionType, 'TRANSFER'> },
 ) => {
+  const defaultAccountOption = { label: '', value: '', currency: 'UAH', balance: 0 };
   const defaultFormValues: TransferFormValues = {
-    sendingAccount: accountOptions[0],
-    receivingAccount: accountOptions[1],
+    sendingAccount: selectedAccount ? getAccountOption(selectedAccount) : accountOptions[0],
+    receivingAccount:
+      accountOptions.filter((o) => o.value !== selectedAccount?.id)[0] || defaultAccountOption,
     fromAmount: 0,
     toAmount: 0,
     transactionType: 'TRANSFER',

@@ -48,7 +48,13 @@ const initialState: InsightsSliceState = {
 export const insightsSlice = createSlice({
   name: 'insights',
   initialState,
-  reducers: {},
+  reducers: {
+    resetState: (state) => {
+      state.overview = initialState.overview;
+      state.currentMonthTransactions = initialState.currentMonthTransactions;
+      state.statistics = initialState.statistics;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(fetchOverview.fulfilled, (state, action) => {
       state.overview.data = action.payload;
@@ -88,5 +94,7 @@ export const insightsSlice = createSlice({
     });
   },
 });
+
+export const { resetState: resetInsightsState } = insightsSlice.actions;
 
 export const insightsReducer = insightsSlice.reducer;

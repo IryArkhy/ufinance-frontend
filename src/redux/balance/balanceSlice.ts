@@ -24,6 +24,11 @@ export const balanceSlice = createSlice({
     setBalance: (state, action: PayloadAction<TotalBalance>) => {
       state.data = action.payload;
     },
+    resetState: (state) => {
+      state.data = initialState.data;
+      state.error = initialState.error;
+      state.loading = initialState.loading;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchBalance.fulfilled, (state, action) => {
@@ -41,6 +46,6 @@ export const balanceSlice = createSlice({
   },
 });
 
-export const { setBalance } = balanceSlice.actions;
+export const { setBalance, resetState: resetBalanceState } = balanceSlice.actions;
 
 export const balanceReducer = balanceSlice.reducer;

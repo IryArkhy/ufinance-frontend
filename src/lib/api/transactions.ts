@@ -58,17 +58,18 @@ export type CreateTransactionResponse = {
 
 export type GetTransactionsResponse = {
   transactions: Transaction[];
-  offset: number | null;
+  cursor: string | undefined;
   limit: number;
+  count: number;
 };
 
 export const getTransactions = async (
   accountId: string,
-  data: { offset?: number; limit?: number },
+  data: { cursor?: string; limit?: number },
 ) => {
-  const offset = data.offset ? `offset=${data.offset}` : '';
+  const cursor = data.cursor ? `cursor=${data.cursor}` : '';
   const limit = data.limit ? `limit=${data.limit}` : '';
-  const query = '?'.concat(offset).concat(`&${limit}`);
+  const query = '?'.concat(cursor).concat(`&${limit}`);
 
   return await axiosInstance.get<GetTransactionsResponse>(
     `api/transactions/${accountId}${query !== '?' ? query : ''}`,
@@ -123,7 +124,6 @@ export type UpdateTransferReqBody = CreateTransferReqBody;
 
 export type UpdateTransferResponse = {
   transaction: Transaction;
-  totalBalance: TotalBalance;
 };
 
 export const updateTransfer = async (data: UpdateTransferReqBody, id: string) => {
@@ -132,10 +132,14 @@ export const updateTransfer = async (data: UpdateTransferReqBody, id: string) =>
 
 export type DeleteTransactionResponse = {
   transaction: Transaction;
-  totalBalance: TotalBalance;
+  updatedAccount: Account;
 };
 
-export type DeleteTransferResponse = DeleteTransactionResponse;
+export type DeleteTransferResponse = {
+  transaction: Transaction;
+  fromAccount: Account;
+  toAccount: Account;
+};
 
 export const deleteTransaction = async (accountId: string, id: string) => {
   return axiosInstance.delete<DeleteTransactionResponse>(`api/transactions/${accountId}/${id}`);

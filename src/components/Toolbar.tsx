@@ -3,12 +3,12 @@ import React from 'react';
 
 import UkrFlag from '../assets/ukraine.png';
 import { stringAvatar } from '../lib/avatar';
-import { getTotalBalance } from '../redux/balance.ts/selectors';
-import { fetchBalance } from '../redux/balance.ts/thunks';
+import { getTotalBalance } from '../redux/balance/selectors';
+import { fetchBalance } from '../redux/balance/thunks';
 import { useDispatch, useSelector } from '../redux/hooks';
 import { getUser } from '../redux/user/selectors';
 
-export function Toolbar() {
+export const Toolbar = React.memo(function Toolbar() {
   const { palette } = useTheme();
   const user = useSelector(getUser);
   const balance = useSelector(getTotalBalance);
@@ -41,4 +41,4 @@ export function Toolbar() {
       </Box>
     </Box>
   );
-}
+});

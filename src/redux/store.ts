@@ -3,7 +3,8 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import thunk from 'redux-thunk';
 
-import { balanceReducer } from './balance.ts/balanceSlice';
+import { accountsReducer } from './accounts/accountsSlice';
+import { balanceReducer } from './balance/balanceSlice';
 import { categoriesReducer } from './categories/categoriesSlice';
 import { insightsReducer } from './insights/insightsSlice';
 import { payeesReducer } from './payees/payeesSlice';
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   payees: payeesReducer,
   tags: tagsReducer,
   insights: insightsReducer,
+  accounts: accountsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
