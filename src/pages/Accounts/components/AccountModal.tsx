@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Checkbox,
-  Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -41,7 +40,6 @@ type FormValues = {
 };
 
 interface AccountModalProps {
-  isOpen: boolean;
   onClose: () => void;
   defaultValues?: FormValues;
   accountId?: string;
@@ -49,7 +47,6 @@ interface AccountModalProps {
 
 export function AccountModal({
   accountId,
-  isOpen,
   onClose,
   defaultValues: propsValues,
 }: AccountModalProps) {
@@ -131,7 +128,7 @@ export function AccountModal({
   }, [propsValues]);
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth keepMounted={false}>
+    <>
       <DialogTitle>{isCreate ? 'Create' : 'Update'} account</DialogTitle>
 
       <DialogContent>
@@ -140,7 +137,7 @@ export function AccountModal({
             name="name"
             control={control}
             rules={{
-              required: true,
+              required: 'The field is required',
             }}
             render={({ field }) => (
               <FormControl>
@@ -266,6 +263,6 @@ export function AccountModal({
           Submit
         </LoadingButton>
       </DialogActions>
-    </Dialog>
+    </>
   );
 }

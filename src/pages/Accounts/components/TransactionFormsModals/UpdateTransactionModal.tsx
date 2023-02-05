@@ -38,7 +38,13 @@ import { getTags } from '../../../../redux/tags/selectors';
 import { TransactionTypeToggleBtn } from '../TransactionTypeToggleBtn';
 
 import { TransactionFormValues } from './types';
-import { getAccountOption, getDefaultTransactionFormValues, getOption } from './utils';
+import {
+  getAccountOption,
+  getDefaultTransactionFormValues,
+  getOption,
+  validateAbilityToWithdrawAmount,
+  validateFormAmount,
+} from './utils';
 
 export type FormTransactionType = Omit<Transaction, 'type'> & {
   type: Exclude<TransactionType, 'TRANSFER'>;
@@ -61,7 +67,7 @@ export function UpdateTransactionModal({
   const { payees } = useSelector(getPayees);
   const { tags } = useSelector(getTags);
   const dispatch = useDispatch();
-  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
+  const { notifyError, notifySuccess, notifyWarning } = React.useContext(NotificationContext);
   const [isAllOptionsVisible, setIsAllOptionsVisible] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -81,6 +87,7 @@ export function UpdateTransactionModal({
   });
 
   const watchAccount = watch('account');
+  const watchType = watch('transactionType');
 
   const handleUpdateTransaction = async (values: UpdateTransactionReqBody) => {
     setIsLoading(true);
@@ -98,9 +105,16 @@ export function UpdateTransactionModal({
   };
 
   const handleSubmit = async (values: TransactionFormValues) => {
+    const amount = typeof values.amount === 'string' ? parseFloat(values.amount) : values.amount;
+
+    if (isEqual(defaultValues, { ...values, amount })) {
+      notifyWarning('Please update values to submit changes!');
+      return;
+    }
+
     const body: UpdateTransactionReqBody = {
       fromAccountId: values.account.value,
-      amount: values.amount,
+      amount,
       date: values.date.toISOString(),
       transactionType: values.transactionType,
       categoryId: values.category.value || undefined,
@@ -126,7 +140,7 @@ export function UpdateTransactionModal({
                 <TransactionTypeToggleBtn
                   value={field.value}
                   onChange={field.onChange}
-                  options={['DEPOSIT', 'WITHDRAWAL']}
+                  options={['WITHDRAWAL', 'DEPOSIT']}
                 />
               </FormControl>
             )}
@@ -150,6 +164,7 @@ export function UpdateTransactionModal({
                   {...field}
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
+                  disableClearable
                   renderInput={(params) => (
                     <TextField label="Target Account" {...params} size="small" required />
                   )}
@@ -162,8 +177,13 @@ export function UpdateTransactionModal({
             control={control}
             rules={{
               required: true,
+              validate: {
+                moreThanZero: validateFormAmount,
+                insufficientBalance: (value) =>
+                  validateAbilityToWithdrawAmount(value, watchType, accounts, watchAccount.value),
+              },
             }}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormControl>
                 <TextField
                   type="number"
@@ -171,6 +191,8 @@ export function UpdateTransactionModal({
                   label="Amount"
                   {...field}
                   required
+                  error={fieldState.invalid}
+                  helperText={fieldState.error ? fieldState.error.message : undefined}
                   InputProps={{
                     startAdornment: (
                       <Box display="flex" mr={1} gap={1} alignItems="center">
@@ -190,7 +212,8 @@ export function UpdateTransactionModal({
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DateTimePicker
                   renderInput={(props) => <TextField {...props} />}
-                  label="Date Time "
+                  label="Date Time"
+                  disableFuture
                   {...field}
                 />
               </LocalizationProvider>

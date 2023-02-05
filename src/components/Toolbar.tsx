@@ -1,7 +1,6 @@
 import { Avatar, Box, Tooltip, Typography, useTheme } from '@mui/material';
 import React from 'react';
 
-import UkrFlag from '../assets/ukraine.png';
 import { stringAvatar } from '../lib/avatar';
 import { getTotalBalance } from '../redux/balance/selectors';
 import { fetchBalance } from '../redux/balance/thunks';
@@ -14,7 +13,7 @@ export const Toolbar = React.memo(function Toolbar() {
   const balance = useSelector(getTotalBalance);
   const dispatch = useDispatch();
 
-  const avatarProps = stringAvatar(user.username);
+  const avatarProps = stringAvatar(user ? user.username : 'User');
 
   React.useEffect(() => {
     dispatch(fetchBalance());
@@ -22,13 +21,12 @@ export const Toolbar = React.memo(function Toolbar() {
 
   return (
     <Box mb={5} display="flex" justifyContent="flex-end" py={2}>
-      <Box display="flex" alignItems="center" gap={3}>
-        <img src={UkrFlag} style={{ width: '30px' }} />
+      <Box display="flex" alignItems="center" gap={2}>
+        <Typography variant="body2">Total balance</Typography>
         {balance && (
           <Tooltip title="Total balance in USD">
             <Typography
               variant="body2"
-              fontWeight="600"
               color={balance.balance > 0 ? palette.success.light : palette.error.main}
             >
               {balance.balance.toLocaleString()} {balance.currency}

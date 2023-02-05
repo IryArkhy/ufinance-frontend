@@ -19,21 +19,14 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ReactComponent as Logo } from '../../assets/logo-no-background.svg';
+import { useClearState } from '../../lib/aplicationState';
 import { ROUTES } from '../../lib/router';
-import { resetAccountsState } from '../../redux/accounts/accountsSlice';
-import { resetBalanceState } from '../../redux/balance/balanceSlice';
-import { resetCategoriesState } from '../../redux/categories/categoriesSlice';
-import { useDispatch } from '../../redux/hooks';
-import { resetInsightsState } from '../../redux/insights/insightsSlice';
-import { resetPayeesState } from '../../redux/payees/payeesSlice';
-import { resetTagsState } from '../../redux/tags/tagsSlice';
-import { clearUser } from '../../redux/user/userSlice';
 
 export function NavigationSidebar() {
   const { palette } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { handleClearState } = useClearState();
 
   const firstLevelItems = [
     {
@@ -59,13 +52,7 @@ export function NavigationSidebar() {
   ];
 
   const handleLogout = () => {
-    dispatch(clearUser());
-    dispatch(resetAccountsState());
-    dispatch(resetBalanceState());
-    dispatch(resetCategoriesState());
-    dispatch(resetInsightsState());
-    dispatch(resetPayeesState());
-    dispatch(resetTagsState());
+    handleClearState();
   };
 
   const secondLevelItems = [

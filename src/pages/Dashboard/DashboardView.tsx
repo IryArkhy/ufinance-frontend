@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import AddRounded from '@mui/icons-material/AddRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import {
@@ -7,7 +6,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
+  Dialog,
   Divider,
   Typography,
   useTheme,
@@ -23,10 +22,12 @@ import Deposit from '../../assets/deposit.png';
 import MoneyBag from '../../assets/money-bag.png';
 import Withdrawal from '../../assets/withdrawal.png';
 import { PageWrapper, Toolbar } from '../../components';
+import { GridLoader } from '../../components/GridLoader';
 import { Account } from '../../lib/api/accounts';
 import { Transaction } from '../../lib/api/transactions';
 import { ROUTES } from '../../lib/router';
 import { getTransactionAmountData } from '../../lib/transactions';
+import { fetchAccounts } from '../../redux/accounts/thunks';
 import { useDispatch, useSelector } from '../../redux/hooks';
 import { getOverview, getRecentTransactions, getStatistics } from '../../redux/insights/selectors';
 import {
@@ -34,9 +35,11 @@ import {
   fetchOverview,
   fetchStatistics,
 } from '../../redux/insights/thunks';
+import { CreateTransactionModal } from '../Accounts/components/TransactionFormsModals';
 import { ACCOUNT_ICONS } from '../Accounts/utils';
 
-import { InsightsCard } from './components';
+import { InsightsCard, OverviewLoader } from './components';
+import { ChartsLoader } from './components/ChartsLoader';
 
 export function DashboardView() {
   const { palette } = useTheme();
@@ -45,6 +48,7 @@ export function DashboardView() {
   const statistics = useSelector(getStatistics);
   const transactions = useSelector(getRecentTransactions);
   const navigate = useNavigate();
+  const [isCreateTransactionModalOpen, setIsCreateTransactionModalOpen] = React.useState(false);
 
   const loadInsights = async () => {
     try {
@@ -52,6 +56,7 @@ export function DashboardView() {
         dispatch(fetchOverview()),
         dispatch(fetchStatistics()),
         dispatch(fetchCurrentMonthTransactions()),
+        dispatch(fetchAccounts()),
       ]);
     } catch (error) {
       console.log(error);
@@ -63,6 +68,11 @@ export function DashboardView() {
   }, []);
 
   const handleNavigateToAccounts = () => navigate(ROUTES.ACCOUNTS);
+
+  const handleCloseCreateTransactionModal = async () => {
+    await loadInsights();
+    setIsCreateTransactionModalOpen(false);
+  };
 
   const chartOption: ApexOptions = {
     chart: {
@@ -107,44 +117,6 @@ export function DashboardView() {
   const donutChartOptions = {
     labels: statistics.data ? Object.keys(statistics.data.transactionsByCategoryData) : [],
   };
-
-  // const transactions = [
-  //   {
-  //     id: 1,
-  //     payee: 'Starbucks',
-  //     date: format(new Date(), 'dd MMMM yyyy'),
-  //     category: 'coffee',
-  //     price: 100,
-  //   },
-  //   {
-  //     id: 2,
-  //     payee: 'Aroma Kava',
-  //     date: format(new Date(), 'dd MMMM yyyy'),
-  //     category: 'coffee',
-  //     price: 20,
-  //   },
-  //   {
-  //     id: 3,
-  //     payee: 'Yellow coffee',
-  //     date: format(new Date(), 'dd MMMM yyyy'),
-  //     category: 'coffee',
-  //     price: 788,
-  //   },
-  //   {
-  //     id: 4,
-  //     payee: 'Silpo',
-  //     date: format(new Date(), 'dd MMMM yyyy'),
-  //     category: 'groceries',
-  //     price: 2037,
-  //   },
-  //   {
-  //     id: 5,
-  //     payee: 'Zara',
-  //     date: format(new Date(), 'dd MMMM yyyy'),
-  //     category: 'shopping',
-  //     price: 1000,
-  //   },
-  // ];
 
   const rows: GridRowsProp =
     transactions.data?.transactions.map((t) => ({
@@ -191,11 +163,11 @@ export function DashboardView() {
       headerClassName: 'lastTransactionsTableHeader',
       align: 'center',
       renderCell: ({ value }: GridRenderCellParams<Transaction>) => {
-        const amountData = getTransactionAmountData(value!);
+        const amountData = value ? getTransactionAmountData(value) : null;
         return (
-          <Typography variant="body2" fontWeight={600} color={amountData.color}>
-            {amountData.sign}
-            {amountData.amount}
+          <Typography variant="body2" fontWeight={600} color={amountData?.color ?? 'GrayText'}>
+            {amountData && amountData.sign}
+            {amountData ? amountData.amount : 'No data'}
           </Typography>
         );
       },
@@ -210,14 +182,19 @@ export function DashboardView() {
         <Typography variant="h4" fontWeight={600}>
           Overview this months
         </Typography>
-        <Button variant="contained" color="secondary" startIcon={<AddRounded fontSize="small" />}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => setIsCreateTransactionModalOpen(true)}
+          startIcon={<AddRounded fontSize="small" />}
+        >
           Додати транзакцію
         </Button>
       </Box>
 
       <Box display="flex" gap={5} alignItems="center" mb={5}>
         {overview.loading === 'pending' ? (
-          <CircularProgress />
+          <OverviewLoader />
         ) : (
           <>
             <Box flex={1}>
@@ -255,42 +232,56 @@ export function DashboardView() {
         )}
       </Box>
       <Box display="flex" gap={5} alignItems="center" mb={5}>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <CardHeader
-              title={<Typography variant="h6">Balance change</Typography>}
-              subheader={
-                <Typography variant="body2" color="GrayText">
-                  Based on the last 30 days
-                </Typography>
-              }
-            />
+        {statistics.loading === 'pending' ? (
+          <ChartsLoader />
+        ) : (
+          <>
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <CardHeader
+                  title={<Typography variant="h6">Balance change</Typography>}
+                  subheader={
+                    <Typography variant="body2" color="GrayText">
+                      Based on the last 30 days
+                    </Typography>
+                  }
+                />
 
-            {statistics.loading === 'pending' ? (
-              <CircularProgress />
-            ) : (
-              <Chart options={chartOption} series={chartSeries} type="line" width="100%" />
-            )}
-          </CardContent>
-        </Card>
-        <Card sx={{ flex: 1 }}>
-          <CardContent>
-            <CardHeader
-              title={<Typography variant="h6">Spendings by category</Typography>}
-              subheader={
-                <Typography variant="body2" color="GrayText">
-                  Based on the last 30 days
-                </Typography>
-              }
-            />
-
-            {statistics.loading === 'pending' ? (
-              <CircularProgress />
-            ) : (
-              <Chart options={donutChartOptions} series={donutChartSeries} type="pie" width="95%" />
-            )}
-          </CardContent>
-        </Card>
+                {chartSeries[0].data.length === 0 ? (
+                  <Typography color="GrayText">
+                    No data available because you dont have transactions this month. Create some.
+                  </Typography>
+                ) : (
+                  <Chart options={chartOption} series={chartSeries} type="line" width="100%" />
+                )}
+              </CardContent>
+            </Card>
+            <Card sx={{ flex: 1 }}>
+              <CardContent>
+                <CardHeader
+                  title={<Typography variant="h6">Spendings by category</Typography>}
+                  subheader={
+                    <Typography variant="body2" color="GrayText">
+                      Based on the last 30 days
+                    </Typography>
+                  }
+                />
+                {donutChartSeries.length === 0 ? (
+                  <Typography color="GrayText">
+                    No data available because you dont have transactions this month. Create some.
+                  </Typography>
+                ) : (
+                  <Chart
+                    options={donutChartOptions}
+                    series={donutChartSeries}
+                    type="pie"
+                    width="95%"
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </Box>
       <Box>
         <Card sx={{ width: '100%' }}>
@@ -302,45 +293,64 @@ export function DashboardView() {
               </Typography>
             }
           />
-          <DataGrid
-            autoHeight
-            rows={rows}
-            columns={columns}
-            disableSelectionOnClick
-            onRowClick={() => {}}
-            loading={false}
-            hideFooter
-            sx={{
-              border: 'hidden',
-              borderRadius: 0,
-              '& .lastTransactionsTableHeader': {
-                bgcolor: palette.grey[200],
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-              },
-              '& .MuiDataGrid-cell:focus, .MuiDataGrid-cell:focus-within, .MuiDataGrid-columnHeader:focus-within':
-                {
-                  outline: 'none',
-                },
-              '& .MuiDataGrid-row': {
-                cursor: 'pointer',
-              },
-            }}
-          />
-          <Divider />
-          <Box p={1}>
-            <Button
-              variant="text"
-              endIcon={<ArrowForwardRoundedIcon />}
-              onClick={handleNavigateToAccounts}
-            >
-              See more
-            </Button>
-          </Box>
+          {transactions.loading === 'pending' ? (
+            <GridLoader />
+          ) : (
+            <>
+              <DataGrid
+                autoHeight
+                rows={rows}
+                columns={columns}
+                disableSelectionOnClick
+                hideFooter
+                components={{
+                  NoRowsOverlay: () => (
+                    <Typography variant="body2" color="GrayText" textAlign="center" mt={4}>
+                      No transactions current month.
+                    </Typography>
+                  ),
+                }}
+                sx={{
+                  border: 'hidden',
+                  borderRadius: 0,
+                  '& .lastTransactionsTableHeader': {
+                    bgcolor: palette.grey[200],
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    borderTopLeftRadius: 0,
+                    borderTopRightRadius: 0,
+                  },
+                  '& .MuiDataGrid-cell:focus, .MuiDataGrid-cell:focus-within, .MuiDataGrid-columnHeader:focus-within':
+                    {
+                      outline: 'none',
+                    },
+                  '& .MuiDataGrid-row': {
+                    cursor: 'pointer',
+                  },
+                }}
+              />
+              <Divider />
+              <Box p={1}>
+                <Button
+                  variant="text"
+                  endIcon={<ArrowForwardRoundedIcon />}
+                  onClick={handleNavigateToAccounts}
+                >
+                  See more
+                </Button>
+              </Box>
+            </>
+          )}
         </Card>
       </Box>
+      <Dialog
+        open={isCreateTransactionModalOpen}
+        onClose={() => setIsCreateTransactionModalOpen(false)}
+        fullWidth
+        keepMounted={false}
+      >
+        <CreateTransactionModal onClose={handleCloseCreateTransactionModal} />
+      </Dialog>
     </PageWrapper>
   );
 }

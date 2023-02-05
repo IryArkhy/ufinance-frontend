@@ -1,4 +1,5 @@
 import { DeleteRounded } from '@mui/icons-material';
+import InfoRounded from '@mui/icons-material/InfoRounded';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -11,6 +12,7 @@ import {
   FormControl,
   IconButton,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -78,7 +80,21 @@ export function CategoriesPanel() {
   return (
     <Box display="flex" flexDirection="column" gap={5}>
       <Card>
-        <CardHeader title={<Typography variant="h6">Create categories</Typography>} />
+        <CardHeader
+          title={
+            <Box display="flex" alignItems="center" gap={2}>
+              <Typography variant="h6">Create categories</Typography>{' '}
+              <Tooltip title="Hit Enter key to add category to the list">
+                <InfoRounded color="action" fontSize="small" />
+              </Tooltip>
+            </Box>
+          }
+          subheader={
+            <Typography variant="body2" color="GrayText">
+              Add multiple categories at once
+            </Typography>
+          }
+        />
         <CardContent>
           <Box sx={{ display: 'flex', gap: 3, justifyContent: 'space-between' }}>
             <FormControl sx={{ width: '100%' }}>
@@ -104,6 +120,7 @@ export function CategoriesPanel() {
             <LoadingButton
               sx={{ width: '20%' }}
               variant="contained"
+              disabled={categoryNames.length === 0}
               loading={loading === 'pending'}
               onClick={handleCreate}
             >

@@ -102,3 +102,42 @@ export const getDefaultTransferFormValues = (
 
   return defaultFormValues;
 };
+
+export const validateFormAmount = (value: number) => {
+  if (value <= 0) {
+    return 'Should be more than 0';
+  }
+
+  return value > 0;
+};
+
+export const validateAbilityToWithdrawAmount = (
+  value: number,
+  type: TransactionType,
+  accounts: Account[],
+  selectedAccountId: string,
+) => {
+  const account = accounts.find((acc) => acc.id === selectedAccountId);
+
+  if (
+    account &&
+    !account.isCredit &&
+    (type === 'WITHDRAWAL' || type === 'TRANSFER') &&
+    value > account.balance
+  ) {
+    return 'Insufficient balance';
+  }
+
+  return true;
+};
+
+export const validateTransferAccounts = (
+  accountToCompare: AccountOption,
+  anotherAccount: AccountOption,
+) => {
+  if (accountToCompare.value === anotherAccount.value) {
+    return 'Sending and receiving accounts ccannot be the same';
+  }
+
+  return true;
+};

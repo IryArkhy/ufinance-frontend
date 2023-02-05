@@ -1,4 +1,5 @@
 import { DeleteRounded } from '@mui/icons-material';
+import InfoRounded from '@mui/icons-material/InfoRounded';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
@@ -11,6 +12,7 @@ import {
   FormControl,
   IconButton,
   TextField,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -75,7 +77,21 @@ export function PayeesPanel() {
   return (
     <Box display="flex" flexDirection="column" gap={5}>
       <Card>
-        <CardHeader title={<Typography variant="h6">Create payees</Typography>} />
+        <CardHeader
+          title={
+            <Box display="flex" alignItems="center" gap={2}>
+              <Typography variant="h6">Create payees</Typography>{' '}
+              <Tooltip title="Hit Enter key to add payee to the list">
+                <InfoRounded color="action" fontSize="small" />
+              </Tooltip>
+            </Box>
+          }
+          subheader={
+            <Typography variant="body2" color="GrayText">
+              Add multiple payees at once
+            </Typography>
+          }
+        />
         <CardContent>
           <Box sx={{ display: 'flex', gap: 3, justifyContent: 'space-between' }}>
             <FormControl sx={{ width: '100%' }}>
@@ -101,6 +117,7 @@ export function PayeesPanel() {
             <LoadingButton
               sx={{ width: '20%' }}
               variant="contained"
+              disabled={payeeNames.length === 0}
               loading={loading === 'pending'}
               onClick={handleCreate}
             >

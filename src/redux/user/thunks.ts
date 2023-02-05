@@ -1,33 +1,32 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
+import {
+  AuthResponse,
+  LoginReqBody,
+  UpdatePasswordReqBody,
+  UpdatePasswordResponse,
+  logIn,
+  signUp as signUpRequest,
+  updatePassword,
+} from '../../lib/api/users';
 import { ErrorData, handleError } from '../../lib/api/utils';
 import axiosInstance from '../../lib/axios';
 
 import { User } from './types';
 
-export const login = createAsyncThunk<
-  { token: string; user: User },
-  { email: string; password: string },
-  { rejectValue: ErrorData }
->('user/login', async (data, thunkApi) => {
-  try {
-    const tokenResponse = await axiosInstance.post<{ token: string }>('/signin', {
-      email: data.email,
-      password: data.password,
-    });
+export const login = createAsyncThunk<AuthResponse, LoginReqBody, { rejectValue: ErrorData }>(
+  'user/login',
+  async (data, thunkApi) => {
+    try {
+      const { token, user } = await logIn(data);
 
-    const userResponse = await axiosInstance.get<{ user: User }>('api/user', {
-      headers: {
-        Authorization: `Bearer ${tokenResponse.data.token}`,
-      },
-    });
-
-    return { token: tokenResponse.data.token, user: userResponse.data.user };
-  } catch (error) {
-    const errorPayload = handleError(error);
-    return thunkApi.rejectWithValue(errorPayload);
-  }
-});
+      return { token, user };
+    } catch (error) {
+      const errorPayload = handleError(error);
+      return thunkApi.rejectWithValue(errorPayload);
+    }
+  },
+);
 
 export const signUp = createAsyncThunk<
   { token: string; user: User },
@@ -35,19 +34,9 @@ export const signUp = createAsyncThunk<
   { rejectValue: ErrorData }
 >('user/signUp', async (data, thunkApi) => {
   try {
-    const tokenResponse = await axiosInstance.post<{ token: string }>('/user', {
-      email: data.email,
-      username: data.username,
-      password: data.password,
-    });
+    const response = await signUpRequest(data);
 
-    const userResponse = await axiosInstance.get<{ user: User }>('api/user', {
-      headers: {
-        Authorization: `Bearer ${tokenResponse.data.token}`,
-      },
-    });
-
-    return { token: tokenResponse.data.token, user: userResponse.data.user };
+    return response;
   } catch (error) {
     const errorPayload = handleError(error);
     return thunkApi.rejectWithValue(errorPayload);
@@ -67,26 +56,14 @@ export const fetchUser = createAsyncThunk<User, any, { rejectValue: ErrorData }>
   },
 );
 
-export type UpdatePasswordReqBody = {
-  oldPassword: string;
-  newPassword: string;
-};
-
-export type UpdatePasswordResponse = {
-  token: string;
-};
-
 export const changePassword = createAsyncThunk<
   UpdatePasswordResponse,
   UpdatePasswordReqBody,
   { rejectValue: ErrorData }
 >('user/changePassword', async (data, thunkApi) => {
   try {
-    const res = await axiosInstance.patch<{ token: string }>('api/user/password', {
-      oldPassword: data.oldPassword,
-      newPassword: data.newPassword,
-    });
-    return res.data;
+    const res = await updatePassword(data);
+    return res;
   } catch (error) {
     const errorPayload = handleError(error);
     return thunkApi.rejectWithValue(errorPayload);

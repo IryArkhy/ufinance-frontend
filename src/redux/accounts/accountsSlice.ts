@@ -87,6 +87,7 @@ export const accountsSlice = createSlice({
 
     builder.addCase(createNewAccount.fulfilled, (state, action) => {
       state.accounts.data = [...state.accounts.data, action.payload];
+      state.selectedAccount = state.selectedAccount ? state.selectedAccount : action.payload;
       state.accounts.loading = 'succeeded';
       state.accounts.error = null;
     });
@@ -102,6 +103,11 @@ export const accountsSlice = createSlice({
       state.accounts.data = state.accounts.data.map((account) =>
         account.id === payload.id ? payload : account,
       );
+
+      if (state.selectedAccount?.id === payload.id) {
+        state.selectedAccount = payload;
+      }
+
       state.accounts.loading = 'succeeded';
       state.accounts.error = null;
     });
@@ -114,7 +120,17 @@ export const accountsSlice = createSlice({
     });
 
     builder.addCase(removeAccount.fulfilled, (state, { payload }) => {
-      state.accounts.data = [...state.accounts.data].filter((account) => account.id !== payload.id);
+      const accounts = [...state.accounts.data].filter((account) => account.id !== payload.id);
+      state.accounts.data = accounts;
+
+      if (state.selectedAccount?.id === payload.id) {
+        if (accounts.length > 0) {
+          state.selectedAccount = accounts[0];
+        } else {
+          state.selectedAccount = null;
+        }
+      }
+
       state.accounts.loading = 'succeeded';
       state.accounts.error = null;
     });

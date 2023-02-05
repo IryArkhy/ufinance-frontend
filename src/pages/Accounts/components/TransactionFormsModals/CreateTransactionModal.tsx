@@ -1,14 +1,6 @@
 import { ExpandLessRounded, ExpandMoreRounded } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-} from '@mui/material';
+import { Box, Button, DialogActions, DialogContent, DialogTitle, FormControl } from '@mui/material';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -34,25 +26,25 @@ import {
 } from './utils';
 
 export type CreateTransactionModalProps = {
-  isOpen: boolean;
   onClose: () => void;
-  // setOffset: React.Dispatch<React.SetStateAction<number | null>>;
 };
 
-export function CreateTransactionModal({
-  isOpen,
-  onClose,
-}: // setOffset,
-CreateTransactionModalProps) {
+export function CreateTransactionModal({ onClose }: CreateTransactionModalProps) {
   const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const accounts = useSelector(getAccounts);
   const selectedAccount = useSelector(getSelectedAccount);
   const dispatch = useDispatch();
   const [isAllTransactionOptionsVisible, setIsAllTransactionOptionsVisible] = React.useState(false);
   const [isAllTransferOptionsVisible, setIsAllTransferOptionsVisible] = React.useState(false);
-  const accountsOptions = accounts.data.map(getAccountOption);
 
+  const accountsOptions = React.useMemo(() => accounts.data.map(getAccountOption), [accounts.data]);
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const transactionTypeForm = useForm<{ type: TransactionType }>({
+    defaultValues: { type: 'WITHDRAWAL' },
+  });
+
+  const watchedType = transactionTypeForm.watch('type');
 
   const transactionForm = useForm<TransactionFormValues>({
     defaultValues: getDefaultTransactionFormValues(accountsOptions, undefined, selectedAccount),
@@ -60,10 +52,6 @@ CreateTransactionModalProps) {
 
   const transferForm = useForm<TransferFormValues>({
     defaultValues: getDefaultTransferFormValues(accountsOptions, selectedAccount ?? undefined),
-  });
-
-  const transactionTypeForm = useForm<{ type: TransactionType }>({
-    defaultValues: { type: 'WITHDRAWAL' },
   });
 
   const resetFormValues = () => {
@@ -78,7 +66,18 @@ CreateTransactionModalProps) {
     resetFormValues();
   }, [selectedAccount]);
 
-  const watchedType = transactionTypeForm.watch('type');
+  React.useEffect(() => {
+    if (watchedType !== 'TRANSFER') {
+      transactionForm.setValue('transactionType', watchedType);
+    }
+  }, [watchedType]);
+
+  React.useEffect(
+    () => () => {
+      resetFormValues();
+    },
+    [],
+  );
 
   const createTransaction = async (values: TransactionFormValues) => {
     const body: CreateTransactionReqBody = {
@@ -101,7 +100,6 @@ CreateTransactionModalProps) {
     } else {
       notifySuccess('Created');
       setIsLoading(false);
-      // setOffset((current) => (current ? current + 1 : current));
       onClose();
     }
   };
@@ -131,7 +129,6 @@ CreateTransactionModalProps) {
     } else {
       notifySuccess('Created');
       setIsLoading(false);
-      // setOffset((current) => (current ? current + 1 : current));
       onClose();
     }
   };
@@ -144,13 +141,13 @@ CreateTransactionModalProps) {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     resetFormValues();
     onClose();
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth keepMounted={false}>
+    <>
       <DialogTitle>Create transaction</DialogTitle>
       <DialogContent>
         <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
@@ -211,6 +208,6 @@ CreateTransactionModalProps) {
           Submit
         </LoadingButton>
       </DialogActions>
-    </Dialog>
+    </>
   );
 }

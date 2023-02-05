@@ -3,14 +3,18 @@ import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { isEqual } from 'lodash';
-import React from 'react';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
 import { Account } from '../../../../lib/api/accounts';
 import { Transaction, TransactionType } from '../../../../lib/api/transactions';
 
 import { TransferFormValues } from './types';
-import { getAccountOption, getOption } from './utils';
+import {
+  getAccountOption,
+  validateAbilityToWithdrawAmount,
+  validateFormAmount,
+  validateTransferAccounts,
+} from './utils';
 
 export type FormTransferType = Omit<Transaction, 'type'> & {
   type: Extract<TransactionType, 'TRANSFER'>;
@@ -43,16 +47,28 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
         control={control}
         rules={{
           required: true,
+          validate: {
+            notEqualToReceivingAccount: (value) =>
+              validateTransferAccounts(value, watchReceivingAccount),
+          },
         }}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormControl>
             <Autocomplete
               options={[...accountsOptions].filter((o) => o.value !== watchReceivingAccount.value)}
               {...field}
+              disableClearable
               isOptionEqualToValue={(o, v) => isEqual(o, v)}
               onChange={(_e, nextValue) => field.onChange(nextValue)}
               renderInput={(params) => (
-                <TextField label="Sending Account" {...params} size="small" required />
+                <TextField
+                  label="Sending Account"
+                  {...params}
+                  size="small"
+                  required
+                  error={fieldState.invalid}
+                  helperText={fieldState.error ? fieldState.error.message : undefined}
+                />
               )}
             />
           </FormControl>
@@ -63,16 +79,28 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
         control={control}
         rules={{
           required: true,
+          validate: {
+            notEqualToSendingAccount: (value) =>
+              validateTransferAccounts(value, watchSendingAccount),
+          },
         }}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormControl>
             <Autocomplete
               options={[...accountsOptions].filter((o) => o.value !== watchSendingAccount.value)}
               {...field}
+              disableClearable
               isOptionEqualToValue={(o, v) => isEqual(o, v)}
               onChange={(_e, nextValue) => field.onChange(nextValue)}
               renderInput={(params) => (
-                <TextField label="Receiving Account" {...params} size="small" required />
+                <TextField
+                  label="Receiving Account"
+                  {...params}
+                  size="small"
+                  required
+                  error={fieldState.invalid}
+                  helperText={fieldState.error ? fieldState.error.message : undefined}
+                />
               )}
             />
           </FormControl>
@@ -83,8 +111,18 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
         control={control}
         rules={{
           required: true,
+          validate: {
+            moreThanZero: validateFormAmount,
+            insufficientBalance: (value) =>
+              validateAbilityToWithdrawAmount(
+                value,
+                'TRANSFER',
+                accounts,
+                watchSendingAccount.value,
+              ),
+          },
         }}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormControl>
             <TextField
               type="number"
@@ -92,6 +130,8 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
               label="From account"
               {...field}
               required
+              error={fieldState.invalid}
+              helperText={fieldState.error ? fieldState.error.message : undefined}
               InputProps={{
                 startAdornment: (
                   <Box display="flex" mr={1} gap={1} alignItems="center">

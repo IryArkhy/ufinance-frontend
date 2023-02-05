@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-import { getToken } from './localStorage';
+import { getUserToken } from './localStorage';
 
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:8080',
@@ -8,7 +8,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = getToken();
+    const token = getUserToken();
 
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -18,6 +18,7 @@ axiosInstance.interceptors.request.use(
   },
 
   (error) => {
+    console.error('axios', error);
     return Promise.reject(error);
   },
 );

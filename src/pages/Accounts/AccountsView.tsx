@@ -1,9 +1,10 @@
 import AddRounded from '@mui/icons-material/AddRounded';
 import { LoadingButton } from '@mui/lab';
-import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, Dialog, Typography } from '@mui/material';
 import React from 'react';
 
 import { PageWrapper, Toolbar } from '../../components';
+import { GridLoader } from '../../components/GridLoader';
 import { Account } from '../../lib/api/accounts';
 import { ErrorData } from '../../lib/api/utils';
 import { NotificationContext } from '../../lib/notifications';
@@ -90,7 +91,8 @@ export function AccountsView() {
   };
 
   const loadData = async () => {
-    return await Promise.all([loadAccounts(), loadCategories(), loadPayees(), loadTags()]);
+    dispatch(resetTransactions());
+    await Promise.all([loadAccounts(), loadCategories(), loadPayees(), loadTags()]);
   };
 
   React.useEffect(() => {
@@ -111,14 +113,14 @@ export function AccountsView() {
     }
   };
 
-  const handleSelectAccount = async (account: Account) => {
+  const handleSelectAccount = (account: Account) => {
     setTransactionsCursor(undefined);
     dispatch(setSelectedAccount(account));
   };
 
   const renderTransactions = () => {
     if (transactions.loading === 'pending' && transactions.data.length === 0) {
-      return <CircularProgress />;
+      return <GridLoader />;
     }
 
     if (transactions.data.length && selectedAccount) {
@@ -144,12 +146,8 @@ export function AccountsView() {
       );
     }
 
-    return <Typography>You have no transactions. Create one</Typography>;
+    return <Typography>Ви поки не маєте жодної транзакції. Додайте першу!</Typography>;
   };
-
-  if (accounts.data.length === 0 && !selectedAccount) {
-    return <CircularProgress />;
-  }
 
   return (
     <PageWrapper>
@@ -162,21 +160,27 @@ export function AccountsView() {
             startIcon={<AddRounded />}
             onClick={() => setIsCreateAccountModalOpen(true)}
           >
-            Create new account
+            Створити аккаунт
           </Button>
         </Box>
+
         <AccountsPanel onSelectAccount={handleSelectAccount} />
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Transactions</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddRounded />}
-            onClick={() => setIsCreateTransactionModalOpen(true)}
-          >
-            Add transaction
-          </Button>
-        </Box>
-        {renderTransactions()}
+        {Boolean(accounts.data.length) && (
+          <>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="h6">Transactions</Typography>
+              <Button
+                variant="contained"
+                disabled={accounts.data.length === 0}
+                startIcon={<AddRounded />}
+                onClick={() => setIsCreateTransactionModalOpen(true)}
+              >
+                Додати транзакцію
+              </Button>
+            </Box>
+            {renderTransactions()}
+          </>
+        )}
       </Box>
       {transactionsCursor !== undefined && (
         <Box width="100%" display="flex" justifyContent="center" pt={2}>
@@ -185,20 +189,28 @@ export function AccountsView() {
             variant="contained"
             onClick={handleLoadMore}
           >
-            Load more
+            Більше
           </LoadingButton>
         </Box>
       )}
 
-      <AccountModal
-        isOpen={isCreateAccountModalOpen}
+      <Dialog
+        open={isCreateAccountModalOpen}
         onClose={() => setIsCreateAccountModalOpen(false)}
-      />
+        fullWidth
+        keepMounted={false}
+      >
+        <AccountModal onClose={() => setIsCreateAccountModalOpen(false)} />
+      </Dialog>
 
-      <CreateTransactionModal
-        isOpen={isCreateTransactionModalOpen}
+      <Dialog
+        open={isCreateTransactionModalOpen}
         onClose={() => setIsCreateTransactionModalOpen(false)}
-      />
+        fullWidth
+        keepMounted={false}
+      >
+        <CreateTransactionModal onClose={() => setIsCreateTransactionModalOpen(false)} />
+      </Dialog>
     </PageWrapper>
   );
 }

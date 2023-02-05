@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   Chip,
+  Dialog,
   IconButton,
   Menu,
   MenuItem,
@@ -15,11 +16,9 @@ import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
 import { Account } from '../../../lib/api/accounts';
 import { ErrorData } from '../../../lib/api/utils';
 import { NotificationContext } from '../../../lib/notifications';
-import { setSelectedAccount } from '../../../redux/accounts/accountsSlice';
-import { getAccounts } from '../../../redux/accounts/selectors';
 import { removeAccount } from '../../../redux/accounts/thunks';
 import { fetchBalance } from '../../../redux/balance/thunks';
-import { useDispatch, useSelector } from '../../../redux/hooks';
+import { useDispatch } from '../../../redux/hooks';
 import { AccountIconsNames } from '../types';
 import { ACCOUNT_ICONS } from '../utils';
 
@@ -33,7 +32,6 @@ interface AccountCardProps {
 
 export function AccountCard({ account, onCardClick, isSelected }: AccountCardProps) {
   const dispatch = useDispatch();
-  const accounts = useSelector(getAccounts);
 
   const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -59,7 +57,6 @@ export function AccountCard({ account, onCardClick, isSelected }: AccountCardPro
       notifyError((resultAction.payload as ErrorData).message);
     } else {
       await dispatch(fetchBalance());
-      dispatch(setSelectedAccount(accounts.data[0]));
 
       notifySuccess('Account deleted');
       setIsConfirmationModalOpen(false);
@@ -146,18 +143,24 @@ export function AccountCard({ account, onCardClick, isSelected }: AccountCardPro
         onConfirm={handleDeleteAccount}
         loading={isDeleteAccountLoading}
       />
-      <AccountModal
-        accountId={account.id}
-        isOpen={isUpdateAccountModalOpen}
+      <Dialog
+        open={isUpdateAccountModalOpen}
         onClose={() => setIsUpdateAccountModalOpen(false)}
-        defaultValues={{
-          balance: account.balance,
-          name: account.name,
-          currency: account.currency,
-          isCredit: account.isCredit,
-          icon: AccountIconsNames[account.icon as keyof typeof AccountIconsNames],
-        }}
-      />
+        fullWidth
+        keepMounted={false}
+      >
+        <AccountModal
+          accountId={account.id}
+          onClose={() => setIsUpdateAccountModalOpen(false)}
+          defaultValues={{
+            balance: account.balance,
+            name: account.name,
+            currency: account.currency,
+            isCredit: account.isCredit,
+            icon: AccountIconsNames[account.icon as keyof typeof AccountIconsNames],
+          }}
+        />
+      </Dialog>
     </>
   );
 }

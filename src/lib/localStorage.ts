@@ -1,14 +1,17 @@
-import { RootState } from '../redux/store';
+const TOKEN_KEY = 'ufinance:user:token';
 
-export const getToken = () => {
-  const store = localStorage.getItem('persist:root');
+export const setToken = (token: string) => {
+  localStorage.setItem(TOKEN_KEY, token);
+};
 
-  if (store) {
-    const { user } = JSON.parse(store) as { user: string };
-    const parsedUser = JSON.parse(user) as RootState['user'];
-
-    return parsedUser.token;
+export const getUserToken = () => {
+  const rawToken = localStorage.getItem(TOKEN_KEY);
+  if (rawToken) {
+    return rawToken;
   }
-
   return null;
+};
+
+export const clearToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
 };

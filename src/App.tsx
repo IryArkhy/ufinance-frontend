@@ -5,10 +5,10 @@ import '@fontsource/roboto/700.css';
 import { ThemeProvider } from '@mui/material';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import { NavigationSidebar } from './components';
+import { ErrorBoundary, NavigationSidebar } from './components';
 import NotificationProvider from './lib/notifications';
 import { ROUTES } from './lib/router';
 import { ProtectedRoute } from './lib/routerDom';
@@ -26,9 +26,10 @@ import { getToken } from './redux/user/selectors';
 
 function Router() {
   const token = useSelector(getToken);
+  const navigate = useNavigate();
 
   return (
-    <BrowserRouter>
+    <ErrorBoundary onNavigate={() => navigate(ROUTES.DASHBOARD)}>
       <NavigationSidebar />
       <Routes>
         <Route path={ROUTES.BASE} element={<Navigate to={ROUTES.DASHBOARD} />} />
@@ -66,8 +67,9 @@ function Router() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<Navigate to={ROUTES.AUTH} />} />
       </Routes>
-    </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
@@ -78,7 +80,9 @@ function App() {
         <Provider store={store}>
           <PersistGate persistor={persistor}>
             <NotificationProvider>
-              <Router />
+              <BrowserRouter>
+                <Router />
+              </BrowserRouter>
             </NotificationProvider>
           </PersistGate>
         </Provider>

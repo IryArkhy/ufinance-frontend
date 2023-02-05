@@ -21,7 +21,12 @@ import { getPayees } from '../../../../redux/payees/selectors';
 import { getTags } from '../../../../redux/tags/selectors';
 
 import { TransactionFormValues } from './types';
-import { getAccountOption, getOption } from './utils';
+import {
+  getAccountOption,
+  getOption,
+  validateAbilityToWithdrawAmount,
+  validateFormAmount,
+} from './utils';
 
 export type FormTransactionType = Omit<Transaction, 'type'> & {
   type: Exclude<TransactionType, 'TRANSFER'>;
@@ -46,6 +51,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
   const { control, watch } = formData;
 
   const watchAccount = watch('account');
+  const watchType = watch('transactionType');
 
   return (
     <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
@@ -69,6 +75,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
               isOptionEqualToValue={(o, v) => isEqual(o, v)}
               getOptionLabel={(o) => o.label}
               onChange={(_e, nextValue) => field.onChange(nextValue)}
+              disableClearable
               renderInput={(params) => (
                 <TextField label="Target Account" {...params} size="small" required />
               )}
@@ -81,8 +88,13 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
         control={control}
         rules={{
           required: true,
+          validate: {
+            moreThanZero: validateFormAmount,
+            insufficientBalance: (value) =>
+              validateAbilityToWithdrawAmount(value, watchType, accounts.data, watchAccount.value),
+          },
         }}
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormControl>
             <TextField
               type="number"
@@ -90,6 +102,8 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
               label="Amount"
               {...field}
               required
+              error={fieldState.invalid}
+              helperText={fieldState.error ? fieldState.error.message : undefined}
               InputProps={{
                 startAdornment: (
                   <Box display="flex" mr={1} gap={1} alignItems="center">
@@ -105,11 +119,15 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
       <Controller
         name="date"
         control={control}
+        rules={{
+          required: true,
+        }}
         render={({ field }) => (
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateTimePicker
               renderInput={(props) => <TextField {...props} />}
-              label="Date Time "
+              label="Date Time"
+              disableFuture
               {...field}
             />
           </LocalizationProvider>

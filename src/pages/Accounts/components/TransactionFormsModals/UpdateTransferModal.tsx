@@ -33,7 +33,13 @@ import { useDispatch } from '../../../../redux/hooks';
 import { TransactionTypeToggleBtn } from '../TransactionTypeToggleBtn';
 
 import { TransferFormValues } from './types';
-import { getAccountOption, getDefaultTransferFormValues } from './utils';
+import {
+  getAccountOption,
+  getDefaultTransferFormValues,
+  validateAbilityToWithdrawAmount,
+  validateFormAmount,
+  validateTransferAccounts,
+} from './utils';
 
 export type FormTransferType = Omit<Transaction, 'type'> & {
   type: Extract<TransactionType, 'TRANSFER'>;
@@ -53,7 +59,7 @@ export function UpdateTransferModal({
   accounts,
 }: UpdateTransferModalProps) {
   const dispatch = useDispatch();
-  const { notifyError, notifySuccess } = React.useContext(NotificationContext);
+  const { notifyError, notifySuccess, notifyWarning } = React.useContext(NotificationContext);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isAllOptionsVisible, setIsAllOptionsVisible] = React.useState(false);
   const accountsOptions = accounts.map(getAccountOption);
@@ -67,8 +73,8 @@ export function UpdateTransferModal({
     defaultValues,
   });
 
-  const watchSendingAccountValue = watch('sendingAccount');
-  const watchReceivingAccountValue = watch('receivingAccount');
+  const watchSendingAccount = watch('sendingAccount');
+  const watchReceivingAccount = watch('receivingAccount');
 
   const handleUpdateTransnsfer = async (values: UpdateTransferReqBody) => {
     setIsLoading(true);
@@ -87,12 +93,21 @@ export function UpdateTransferModal({
 
   const handleSubmit = async (values: TransferFormValues) => {
     const sameCurrencies = values.sendingAccount.currency === values.receivingAccount.currency;
+    const fromAmount =
+      typeof values.fromAmount === 'string' ? parseFloat(values.fromAmount) : values.fromAmount;
+    const toAmount =
+      typeof values.toAmount === 'string' ? parseFloat(values.toAmount) : values.toAmount;
+
+    if (isEqual(defaultValues, { ...values, fromAmount, toAmount })) {
+      notifyWarning('Please update values to submit changes!');
+      return;
+    }
 
     const body: UpdateTransferReqBody = {
       fromAccountId: values.sendingAccount.value,
       toAccountId: values.receivingAccount.value,
       fromAccountAmount: values.fromAmount,
-      toAccountAmount: sameCurrencies ? values.fromAmount : values.toAmount,
+      toAccountAmount: sameCurrencies ? fromAmount : toAmount,
       date: values.date.toISOString(),
       description: values.description,
     };
@@ -120,28 +135,39 @@ export function UpdateTransferModal({
           />
           <Typography
             variant="caption"
-            color={watchSendingAccountValue.balance > 0 ? 'success.light' : 'error.light'}
+            color={watchSendingAccount.balance > 0 ? 'success.light' : 'error.light'}
           >
-            Current balance:{' '}
-            {`${watchSendingAccountValue.balance} ${watchSendingAccountValue.currency}`}
+            Current balance: {`${watchSendingAccount.balance} ${watchSendingAccount.currency}`}
           </Typography>
           <Controller
             name="sendingAccount"
             control={control}
             rules={{
               required: true,
+              validate: {
+                notEqualToReceivingAccount: (value) =>
+                  validateTransferAccounts(value, watchReceivingAccount),
+              },
             }}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormControl>
                 <Autocomplete
                   options={[...accountsOptions].filter(
-                    (o) => o.value !== watchReceivingAccountValue.value,
+                    (o) => o.value !== watchReceivingAccount.value,
                   )}
                   {...field}
+                  disableClearable
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
                   renderInput={(params) => (
-                    <TextField label="Sending Account" {...params} size="small" required />
+                    <TextField
+                      label="Sending Account"
+                      {...params}
+                      size="small"
+                      required
+                      error={fieldState.invalid}
+                      helperText={fieldState.error ? fieldState.error.message : undefined}
+                    />
                   )}
                 />
               </FormControl>
@@ -152,18 +178,30 @@ export function UpdateTransferModal({
             control={control}
             rules={{
               required: true,
+              validate: {
+                notEqualToSendingAccount: (value) =>
+                  validateTransferAccounts(value, watchSendingAccount),
+              },
             }}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormControl>
                 <Autocomplete
                   options={[...accountsOptions].filter(
-                    (o) => o.value !== watchSendingAccountValue.value,
+                    (o) => o.value !== watchSendingAccount.value,
                   )}
                   {...field}
+                  disableClearable
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
                   renderInput={(params) => (
-                    <TextField label="Receiving Account" {...params} size="small" required />
+                    <TextField
+                      label="Receiving Account"
+                      {...params}
+                      size="small"
+                      required
+                      error={fieldState.invalid}
+                      helperText={fieldState.error ? fieldState.error.message : undefined}
+                    />
                   )}
                 />
               </FormControl>
@@ -174,8 +212,18 @@ export function UpdateTransferModal({
             control={control}
             rules={{
               required: true,
+              validate: {
+                moreThanZero: validateFormAmount,
+                insufficientBalance: (value) =>
+                  validateAbilityToWithdrawAmount(
+                    value,
+                    'TRANSFER',
+                    accounts,
+                    watchSendingAccount.value,
+                  ),
+              },
             }}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <FormControl>
                 <TextField
                   type="number"
@@ -183,10 +231,12 @@ export function UpdateTransferModal({
                   label="From account"
                   {...field}
                   required
+                  error={fieldState.invalid}
+                  helperText={fieldState.error ? fieldState.error.message : undefined}
                   InputProps={{
                     startAdornment: (
                       <Box display="flex" mr={1} gap={1} alignItems="center">
-                        <Typography>{watchSendingAccountValue.currency}</Typography>
+                        <Typography>{watchSendingAccount.currency}</Typography>
                         <Divider orientation="vertical" sx={{ height: '20px' }} />
                       </Box>
                     ),
@@ -195,7 +245,7 @@ export function UpdateTransferModal({
               </FormControl>
             )}
           />
-          {watchReceivingAccountValue.currency !== watchSendingAccountValue.currency && (
+          {watchReceivingAccount.currency !== watchSendingAccount.currency && (
             <Controller
               name="toAmount"
               control={control}
@@ -213,7 +263,7 @@ export function UpdateTransferModal({
                     InputProps={{
                       startAdornment: (
                         <Box display="flex" mr={1} gap={1} alignItems="center">
-                          <Typography>{watchReceivingAccountValue.currency}</Typography>
+                          <Typography>{watchReceivingAccount.currency}</Typography>
                           <Divider orientation="vertical" sx={{ height: '20px' }} />
                         </Box>
                       ),
