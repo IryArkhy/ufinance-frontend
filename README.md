@@ -1,46 +1,40 @@
-# Getting Started with Create React App
+# Контрольна робота. Варіант №3: Веб застосунок керування власним бюджетом
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+## Запуск застосунку локально
 
-In the project directory, you can run:
+Створити файл `.env` зі змінною `REACT_APP_BASE_URL="BACK_END_URL"`.
 
-### `npm start`
+На машині повинен бути вставновлений Node.js версії `16.15.0`. Можна використати бібліотеку `nvm` для забезпечення цієї умови.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+npm install 
+npm start
+```
+## Stack
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Для створення front-end застосунку використовувались такі інструменти
+1. React.js для створення юзер інтерфейсу та керування стейтом компонетів.
+2. `react-router-dom` для створення внутрішнього раутингу додатка.
+3. TypeScript для забезпечення строгої типизації.
+4. Redux + redux-persist для керування глобальним стейтом додатку.
+5. react-apexcharts для відображення графіків та діаграм.
+6. Material UI - UI toolkit (аналог Bootstrap для Реакт додатків)ю
 
-### `npm test`
+## Деплоймент
+Сайт задеплоїний за допомогою Netlify.com
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Опис функціоналу
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Юзер має змогу зареєструватись і увійти у свій профіль (авторизація).
+2. Юзер може оновити пароль на сторінці профілю.
+3. Юзер має змогу створити декілька рахунків 2 видів - у національній валюті (гривня, доллар, євро) та криптовалюті (Біткоїн, Етер). Рахунок може бути кредитним або дебетним.
+4. Юзер ає змогу редагувати рахунок (змінити назву, іконку, тип рахунку у випадку, якщо баланс рахунку позитивний).
+5. Юзер має змогу переглядати створеня рахунки та інформацію про них.
+6. Юзер має змогу створювати транзакції та перекази між рахунками, а також редагувати створені транзакції.
+7. Юзер має змогу видаляти рахунки.
+8. Юзер має змогу видаляти транзакції.
+9. Юзер має змогу створити категорії, отримувачів платежів та теґи на сторінці Налаштування і використовувати їх при створенні та редагуванні транзакцій.
+10. Юзер має змогу дивитись статистику за поточний місяць на головній сторінці (Dashboard) - загільні витрати у гривні, загальні доходи у гривні, кількість транзакцій, загальний баланс (сума балансів з усіх рахунків у долларовому еквіваленті), графік зміни загального балансу за місяць, діаграма витрат за категоріями, а також список останніх транзікцій.
+11. Юзер може вийти з аккаунту.
