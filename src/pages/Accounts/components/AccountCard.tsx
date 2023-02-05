@@ -113,10 +113,10 @@ export function AccountCard({ account, onCardClick, isSelected }: AccountCardPro
                   setIsUpdateAccountModalOpen(true);
                 }}
               >
-                Edit
+                Редагувати
               </MenuItem>
               <MenuItem onClick={handleDeleteMenuItemClick}>
-                <Typography color="error.light">Delete</Typography>
+                <Typography color="error.light">Видалити</Typography>
               </MenuItem>
             </Menu>
           </Box>
@@ -125,7 +125,7 @@ export function AccountCard({ account, onCardClick, isSelected }: AccountCardPro
             <Box>
               <Box display="flex" gap={1} alignItems="center">
                 <Typography variant="subtitle1">{account.name}</Typography>
-                {account.isCredit && <Chip label="Credit" size="small" />}
+                {account.isCredit && <Chip label="Кредитний" size="small" />}
               </Box>
               <Box display="flex" gap={1}>
                 <Typography>{account.balance}</Typography>
@@ -138,8 +138,8 @@ export function AccountCard({ account, onCardClick, isSelected }: AccountCardPro
       <ActionConfirmationModal
         isOpen={isConfirmationModalOpen}
         onClose={() => setIsConfirmationModalOpen(false)}
-        title="Are you sure, you'd like to delete account?"
-        description="This action will case deletion of all transactions that you looged as well as modifing your account balance."
+        title="Ви впевнені, що хочете видалити рахунок?"
+        description="Ця дія призведе до видалення всіх транзакцій, які ви зареєстрували, а також змінить загальний баланс вашого профілю."
         onConfirm={handleDeleteAccount}
         loading={isDeleteAccountLoading}
       />

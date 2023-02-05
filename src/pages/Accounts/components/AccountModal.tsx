@@ -129,7 +129,7 @@ export function AccountModal({
 
   return (
     <>
-      <DialogTitle>{isCreate ? 'Create' : 'Update'} account</DialogTitle>
+      <DialogTitle>{isCreate ? 'Створити' : 'Оновити'} рахунок</DialogTitle>
 
       <DialogContent>
         <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
@@ -137,7 +137,7 @@ export function AccountModal({
             name="name"
             control={control}
             rules={{
-              required: 'The field is required',
+              required: "Поле обов'язкове для заповнення",
             }}
             render={({ field }) => (
               <FormControl>
@@ -156,7 +156,7 @@ export function AccountModal({
                 }}
                 render={({ field }) => (
                   <FormControl>
-                    <TextField type="number" size="small" label="Balance" {...field} />
+                    <TextField type="number" size="small" label="Баланс" {...field} />
                   </FormControl>
                 )}
               />
@@ -174,7 +174,7 @@ export function AccountModal({
                       isOptionEqualToValue={(o, v) => isEqual(o, v)}
                       onChange={(_e, nextValue) => field.onChange(nextValue)}
                       renderInput={(params) => (
-                        <TextField label="Currency" {...params} size="small" />
+                        <TextField label="Валюта" {...params} size="small" />
                       )}
                     />
                   </FormControl>
@@ -216,7 +216,7 @@ export function AccountModal({
                       <TextField
                         {...params}
                         size="small"
-                        label="Icon"
+                        label="Іконка"
                         InputProps={{
                           ...params.InputProps,
                           startAdornment: (
@@ -238,17 +238,17 @@ export function AccountModal({
             render={({ field }) => (
               <FormControl>
                 {propsValues && propsValues.balance < 0 ? (
-                  <Tooltip title="Account cannot be negative if you want to change this field">
+                  <Tooltip title="Рахунок не може бути від'ємним, якщо ви хочете змінити це поле.">
                     <FormControlLabel
                       control={<Checkbox {...field} />}
-                      label="Credit account"
+                      label="Кредитний рахунок"
                       disabled={propsValues && propsValues.balance < 0}
                     />
                   </Tooltip>
                 ) : (
                   <FormControlLabel
                     control={<Checkbox {...field} checked={field.value} />}
-                    label="Credit account"
+                    label="Кредитний рахунок"
                     disabled={propsValues && propsValues.balance < 0}
                   />
                 )}
@@ -260,7 +260,7 @@ export function AccountModal({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <LoadingButton loading={isLoading} onClick={onSubmit(handleSubmit)} color="success">
-          Submit
+          Підтвердити
         </LoadingButton>
       </DialogActions>
     </>

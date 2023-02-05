@@ -28,20 +28,20 @@ export function TransactionTypeToggleBtn({
     switch (type) {
       case 'DEPOSIT':
         return (
-          <Tooltip title="Deposit">
+          <Tooltip title="Депозит">
             <AddCircleOutlineRoundedIcon />
           </Tooltip>
         );
       case 'WITHDRAWAL':
         return (
-          <Tooltip title="Withdraw">
+          <Tooltip title="Зняття коштів">
             <RemoveCircleOutlineRoundedIcon />
           </Tooltip>
         );
 
       default:
         return (
-          <Tooltip title="Transfer">
+          <Tooltip title="Переказ коштів">
             <CompareArrowsRoundedIcon />
           </Tooltip>
         );

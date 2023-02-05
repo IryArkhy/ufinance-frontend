@@ -25,6 +25,7 @@ import { ReactComponent as LoginPicture } from '../../assets/login-pic.svg';
 import { ReactComponent as Logo } from '../../assets/logo-no-background.svg';
 import { ErrorData } from '../../lib/api/utils';
 import { NotificationContext } from '../../lib/notifications';
+import { passwordRegex } from '../../lib/password';
 import { ROUTES } from '../../lib/router';
 import { useDispatch, useSelector } from '../../redux/hooks';
 import { getToken } from '../../redux/user/selectors';
@@ -95,6 +96,7 @@ export function AuthenticationView() {
     setIsLoading(false);
 
     if (resultAction.meta.requestStatus === 'rejected') {
+      console.log({ payload: resultAction });
       notifyError((resultAction.payload as ErrorData).message);
     }
   };
@@ -150,15 +152,22 @@ export function AuthenticationView() {
                     name="email"
                     control={control}
                     rules={{
-                      required: true,
+                      required: "Поле обов'язкове для заповнення",
+                      pattern: {
+                        // eslint-disable-next-line no-useless-escape
+                        value: new RegExp(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/),
+                        message: 'Введіть валідну пошту',
+                      },
                     }}
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <FormControl>
                         <TextField
                           type="email"
                           autoComplete="email"
                           size="medium"
                           label="Електронна пошта"
+                          error={fieldState.invalid}
+                          helperText={fieldState.error ? fieldState.error.message : undefined}
                           {...field}
                         />
                       </FormControl>
@@ -168,9 +177,9 @@ export function AuthenticationView() {
                     name="password"
                     control={control}
                     rules={{
-                      required: true,
+                      required: "Поле обов'язкове для заповнення",
                     }}
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <FormControl variant="standard">
                         <TextField
                           id="standard-adornment-password"
@@ -178,6 +187,8 @@ export function AuthenticationView() {
                           {...field}
                           label="Пароль"
                           autoComplete="current-password"
+                          error={fieldState.invalid}
+                          helperText={fieldState.error ? fieldState.error.message : undefined}
                           InputProps={{
                             endAdornment: (
                               <InputAdornment position="end">
@@ -215,7 +226,7 @@ export function AuthenticationView() {
                       variant="text"
                       onClick={changeToRegistration}
                     >
-                      створити
+                      Створити
                     </Button>
                   </Box>
                 </Stack>
@@ -248,16 +259,24 @@ export function AuthenticationView() {
                     name="email"
                     control={registrationControll}
                     rules={{
-                      required: true,
+                      required: "Поле обов'язкове для заповнення",
+                      pattern: {
+                        // eslint-disable-next-line no-useless-escape
+                        value: new RegExp(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/),
+                        message: 'Введіть валідну пошту',
+                      },
                     }}
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <FormControl>
                         <TextField
                           type="email"
                           autoComplete="email"
                           size="medium"
                           label="Електронна пошта"
+                          required
                           {...field}
+                          error={fieldState.invalid}
+                          helperText={fieldState.error ? fieldState.error.message : undefined}
                         />
                       </FormControl>
                     )}
@@ -266,15 +285,18 @@ export function AuthenticationView() {
                     name="username"
                     control={registrationControll}
                     rules={{
-                      required: true,
+                      required: "Поле обов'язкове для заповнення",
                     }}
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <FormControl>
                         <TextField
                           type="username"
                           autoComplete="username"
                           size="medium"
                           label="Нікнейм"
+                          required
+                          error={fieldState.invalid}
+                          helperText={fieldState.error ? fieldState.error.message : undefined}
                           {...field}
                         />
                       </FormControl>
@@ -285,15 +307,23 @@ export function AuthenticationView() {
                     control={registrationControll}
                     rules={{
                       required: true,
+                      pattern: {
+                        value: passwordRegex,
+                        message:
+                          'Пароль повинен містити хочаб 1 велику і 1 маленьку літери, 1 символ (!@#$&*_), 1 цифру, довжиною щонайменш у 8 символів.',
+                      },
                     }}
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <FormControl variant="standard">
                         <TextField
                           id="standard-adornment-password"
                           type={isPasswordVisible ? 'text' : 'password'}
                           {...field}
                           label="Пароль"
+                          required
                           autoComplete="current-password"
+                          error={fieldState.invalid}
+                          helperText={fieldState.error ? fieldState.error.message : undefined}
                           InputProps={{
                             endAdornment: (
                               <InputAdornment position="end">

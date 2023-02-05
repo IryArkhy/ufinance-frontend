@@ -81,10 +81,12 @@ export const getDefaultTransferFormValues = (
 
   if (!transaction) return defaultFormValues;
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const sendingAccount = accountOptions.find(
     (option) => option.value === transaction.fromAccountId,
   )!;
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const receivingAccount = accountOptions.find(
     (option) => option.value === transaction.toAccountId,
   )!;
@@ -105,7 +107,7 @@ export const getDefaultTransferFormValues = (
 
 export const validateFormAmount = (value: number) => {
   if (value <= 0) {
-    return 'Should be more than 0';
+    return 'Має бути більшим за 0.';
   }
 
   return value > 0;
@@ -125,7 +127,7 @@ export const validateAbilityToWithdrawAmount = (
     (type === 'WITHDRAWAL' || type === 'TRANSFER') &&
     value > account.balance
   ) {
-    return 'Insufficient balance';
+    return 'Недостатній баланс.';
   }
 
   return true;
@@ -136,7 +138,7 @@ export const validateTransferAccounts = (
   anotherAccount: AccountOption,
 ) => {
   if (accountToCompare.value === anotherAccount.value) {
-    return 'Sending and receiving accounts ccannot be the same';
+    return 'Акаунти відправлення та одержання не можуть співпадати.';
   }
 
   return true;

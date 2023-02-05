@@ -56,7 +56,7 @@ export function TagsPanel() {
   const columns: GridColDef[] = [
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: 'Назва',
       flex: 1,
       headerClassName: 'lastTableHeader',
     },
@@ -80,15 +80,15 @@ export function TagsPanel() {
         <CardHeader
           title={
             <Box display="flex" alignItems="center" gap={2}>
-              <Typography variant="h6">Create tags</Typography>
-              <Tooltip title="Hit Enter key to add tag to the list">
+              <Typography variant="h6">Створення теґів</Typography>
+              <Tooltip title="Натисніть клавішу Enter, щоб додати категорію до списку">
                 <InfoRounded color="action" fontSize="small" />
               </Tooltip>
             </Box>
           }
           subheader={
             <Typography variant="body2" color="GrayText">
-              Add multiple tags at once
+              Додайте кілька теґів одночасно
             </Typography>
           }
         />
@@ -111,7 +111,7 @@ export function TagsPanel() {
                     />
                   ))
                 }
-                renderInput={(params) => <TextField {...params} label="Tags" />}
+                renderInput={(params) => <TextField {...params} label="Теґи" />}
               />
             </FormControl>
             <LoadingButton
@@ -121,17 +121,17 @@ export function TagsPanel() {
               loading={loading === 'pending'}
               onClick={handleCreate}
             >
-              Create
+              Створити
             </LoadingButton>
           </Box>
         </CardContent>
       </Card>
       <Card sx={{ width: '100%' }}>
         <CardHeader
-          title={<Typography variant="h6">Tags</Typography>}
+          title={<Typography variant="h6">Теґи</Typography>}
           subheader={
             <Typography variant="body2" color="GrayText">
-              Manage your tags list
+              Керування списком теґів
             </Typography>
           }
         />

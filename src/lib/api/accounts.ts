@@ -1,7 +1,5 @@
 import axiosInstance from '../axios';
 
-import { getAuthHeader } from './utils';
-
 export type AvailableCurrency = 'UAH' | 'USD' | 'EUR' | 'BTC' | 'ETH';
 export type AvailableIcons =
   | 'BANK'

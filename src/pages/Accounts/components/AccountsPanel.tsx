@@ -4,7 +4,6 @@ import React from 'react';
 import { Account } from '../../../lib/api/accounts';
 import { setSelectedAccount } from '../../../redux/accounts/accountsSlice';
 import { getAccounts, getSelectedAccount } from '../../../redux/accounts/selectors';
-import { fetchTransactions } from '../../../redux/accounts/thunks';
 import { useDispatch, useSelector } from '../../../redux/hooks';
 import { groupAccountsByType } from '../utils';
 
@@ -59,10 +58,10 @@ export function AccountsPanel({ onSelectAccount }: AccountsPanelProps) {
               />
             ))
           ) : (
-            <Typography variant="body2">You have no accounts in national currency.</Typography>
+            <Typography variant="body2">У вас немає рахунків у національній валюті.</Typography>
           )}
         </Box>
-        <Typography variant="h6">Cryptocurrency Accounts</Typography>
+        <Typography variant="h6">Криптовалютні</Typography>
         <Box display="flex" flexWrap="wrap" gap={3}>
           {accountsByType.crypto.length ? (
             accountsByType.crypto.map((account) => (
@@ -74,12 +73,12 @@ export function AccountsPanel({ onSelectAccount }: AccountsPanelProps) {
               />
             ))
           ) : (
-            <Typography variant="body2">You have no Cryptocurrency accounts.</Typography>
+            <Typography variant="body2">У вас немає криптовалютних рахунків.</Typography>
           )}
         </Box>
       </>
     );
   }
 
-  return <Typography> You have no accounts. Create one</Typography>;
+  return <Typography> У вас немає жодного рахунку. Створіть перший!</Typography>;
 }

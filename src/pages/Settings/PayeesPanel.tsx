@@ -56,7 +56,7 @@ export function PayeesPanel() {
   const columns: GridColDef[] = [
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: 'Назва',
       flex: 1,
       headerClassName: 'lastTableHeader',
     },
@@ -80,15 +80,15 @@ export function PayeesPanel() {
         <CardHeader
           title={
             <Box display="flex" alignItems="center" gap={2}>
-              <Typography variant="h6">Create payees</Typography>{' '}
-              <Tooltip title="Hit Enter key to add payee to the list">
+              <Typography variant="h6">Створіть одержувачів платежів</Typography>{' '}
+              <Tooltip title="Натисніть клавішу Enter, щоб додати категорію до списку">
                 <InfoRounded color="action" fontSize="small" />
               </Tooltip>
             </Box>
           }
           subheader={
             <Typography variant="body2" color="GrayText">
-              Add multiple payees at once
+              Додайте кілька одночасно
             </Typography>
           }
         />
@@ -111,7 +111,7 @@ export function PayeesPanel() {
                     />
                   ))
                 }
-                renderInput={(params) => <TextField {...params} label="Payees" />}
+                renderInput={(params) => <TextField {...params} label="Отримувачі платежу" />}
               />
             </FormControl>
             <LoadingButton
@@ -121,17 +121,17 @@ export function PayeesPanel() {
               loading={loading === 'pending'}
               onClick={handleCreate}
             >
-              Create
+              Створити
             </LoadingButton>
           </Box>
         </CardContent>
       </Card>
       <Card sx={{ width: '100%' }}>
         <CardHeader
-          title={<Typography variant="h6">Payees</Typography>}
+          title={<Typography variant="h6">Отримувачі платежу</Typography>}
           subheader={
             <Typography variant="body2" color="GrayText">
-              Manage your payees list
+              Керуйте списком одержувачів
             </Typography>
           }
         />

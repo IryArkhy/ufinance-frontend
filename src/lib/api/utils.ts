@@ -62,9 +62,7 @@ export function handleError(error: unknown): ErrorData {
       return { message };
     }
 
-    if (isServerError(resData)) {
-      return resData;
-    }
+    return resData;
   }
 
   return DEFAULT_ERROR;

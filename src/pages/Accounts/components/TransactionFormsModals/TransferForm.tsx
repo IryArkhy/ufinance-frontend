@@ -2,6 +2,7 @@ import { Autocomplete, Box, Divider, FormControl, TextField, Typography } from '
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { uk } from 'date-fns/locale';
 import { isEqual } from 'lodash';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
@@ -21,7 +22,7 @@ export type FormTransferType = Omit<Transaction, 'type'> & {
 };
 
 export type TransferFormProps = {
-  formData: UseFormReturn<TransferFormValues, any>;
+  formData: UseFormReturn<TransferFormValues>;
   accounts: Account[];
   isAllOptionsVisible: boolean;
 };
@@ -40,7 +41,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
         variant="caption"
         color={watchSendingAccount.balance > 0 ? 'success.light' : 'error.light'}
       >
-        Current balance: {`${watchSendingAccount.balance} ${watchSendingAccount.currency}`}
+        Поточний баланс: {`${watchSendingAccount.balance} ${watchSendingAccount.currency}`}
       </Typography>
       <Controller
         name="sendingAccount"
@@ -62,7 +63,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
               onChange={(_e, nextValue) => field.onChange(nextValue)}
               renderInput={(params) => (
                 <TextField
-                  label="Sending Account"
+                  label="Рахунок для відправлення"
                   {...params}
                   size="small"
                   required
@@ -94,7 +95,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
               onChange={(_e, nextValue) => field.onChange(nextValue)}
               renderInput={(params) => (
                 <TextField
-                  label="Receiving Account"
+                  label="Рахунок отримання"
                   {...params}
                   size="small"
                   required
@@ -127,7 +128,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
             <TextField
               type="number"
               size="small"
-              label="From account"
+              label="Cума з аккаунту"
               {...field}
               required
               error={fieldState.invalid}
@@ -156,7 +157,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
               <TextField
                 type="number"
                 size="small"
-                label="To account"
+                label="Сума на рахунок"
                 {...field}
                 required
                 InputProps={{
@@ -177,10 +178,10 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
         name="date"
         control={control}
         render={({ field }) => (
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={uk}>
             <DateTimePicker
               renderInput={(props) => <TextField {...props} />}
-              label="Date Time"
+              label="Дата і час"
               {...field}
             />
           </LocalizationProvider>
@@ -192,14 +193,7 @@ export function TransferForm({ formData, accounts, isAllOptionsVisible }: Transf
           control={control}
           render={({ field }) => (
             <FormControl>
-              <TextField
-                multiline
-                type="text"
-                size="small"
-                rows={3}
-                label="Description"
-                {...field}
-              />
+              <TextField multiline type="text" size="small" rows={3} label="Опис" {...field} />
             </FormControl>
           )}
         />

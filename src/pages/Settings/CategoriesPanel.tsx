@@ -59,7 +59,7 @@ export function CategoriesPanel() {
   const categoriesColumns: GridColDef[] = [
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: 'Назва',
       flex: 1,
       headerClassName: 'lastTableHeader',
     },
@@ -83,15 +83,15 @@ export function CategoriesPanel() {
         <CardHeader
           title={
             <Box display="flex" alignItems="center" gap={2}>
-              <Typography variant="h6">Create categories</Typography>{' '}
-              <Tooltip title="Hit Enter key to add category to the list">
+              <Typography variant="h6">Створити категорії</Typography>{' '}
+              <Tooltip title="Натисніть клавішу Enter, щоб додати категорію до списку">
                 <InfoRounded color="action" fontSize="small" />
               </Tooltip>
             </Box>
           }
           subheader={
             <Typography variant="body2" color="GrayText">
-              Add multiple categories at once
+              Додайте кілька категорій одночасно
             </Typography>
           }
         />
@@ -114,7 +114,7 @@ export function CategoriesPanel() {
                     />
                   ))
                 }
-                renderInput={(params) => <TextField {...params} label="Categories" />}
+                renderInput={(params) => <TextField {...params} label="Категорії" />}
               />
             </FormControl>
             <LoadingButton
@@ -124,7 +124,7 @@ export function CategoriesPanel() {
               loading={loading === 'pending'}
               onClick={handleCreate}
             >
-              Create
+              Створити
             </LoadingButton>
           </Box>
         </CardContent>
@@ -132,10 +132,10 @@ export function CategoriesPanel() {
 
       <Card sx={{ width: '100%' }}>
         <CardHeader
-          title={<Typography variant="h6">Categories</Typography>}
+          title={<Typography variant="h6">Категорії</Typography>}
           subheader={
             <Typography variant="body2" color="GrayText">
-              Manage your categories list
+              Керування списком категорій
             </Typography>
           }
         />

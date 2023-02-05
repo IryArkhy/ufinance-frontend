@@ -26,7 +26,7 @@ import {
 } from './utils';
 
 export type CreateTransactionModalProps = {
-  onClose: () => void;
+  onClose: (isCancel?: boolean) => void;
 };
 
 export function CreateTransactionModal({ onClose }: CreateTransactionModalProps) {
@@ -98,7 +98,7 @@ export function CreateTransactionModal({ onClose }: CreateTransactionModalProps)
       notifyError((resultAction.payload as ErrorData).message);
       setIsLoading(false);
     } else {
-      notifySuccess('Created');
+      notifySuccess('Створено!');
       setIsLoading(false);
       onClose();
     }
@@ -127,7 +127,7 @@ export function CreateTransactionModal({ onClose }: CreateTransactionModalProps)
       notifyError((resultAction.payload as ErrorData).message);
       setIsLoading(false);
     } else {
-      notifySuccess('Created');
+      notifySuccess('Створено!');
       setIsLoading(false);
       onClose();
     }
@@ -143,12 +143,12 @@ export function CreateTransactionModal({ onClose }: CreateTransactionModalProps)
 
   const handleClose = async () => {
     resetFormValues();
-    onClose();
+    onClose(true);
   };
 
   return (
     <>
-      <DialogTitle>Create transaction</DialogTitle>
+      <DialogTitle>Створити транзакцію</DialogTitle>
       <DialogContent>
         <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
           <Controller
@@ -186,7 +186,7 @@ export function CreateTransactionModal({ onClose }: CreateTransactionModalProps)
               }
               onClick={() => setIsAllTransferOptionsVisible((current) => !current)}
             >
-              {isAllTransferOptionsVisible ? 'Show less' : 'Show more'}
+              {isAllTransferOptionsVisible ? 'Сховати' : 'Показати більше опцій'}
             </Button>
           ) : (
             <Button
@@ -195,17 +195,17 @@ export function CreateTransactionModal({ onClose }: CreateTransactionModalProps)
               }
               onClick={() => setIsAllTransactionOptionsVisible((current) => !current)}
             >
-              {isAllTransactionOptionsVisible ? 'Show less' : 'Show more'}
+              {isAllTransactionOptionsVisible ? 'Сховати' : 'Показати більше опцій'}
             </Button>
           )}
         </Box>
       </DialogContent>
       <DialogActions>
         <Button disabled={isLoading} onClick={handleClose}>
-          Cancel
+          Відмінити
         </Button>
         <LoadingButton loading={isLoading} onClick={returnSubmitFuntcion()} color="success">
-          Submit
+          Створити
         </LoadingButton>
       </DialogActions>
     </>

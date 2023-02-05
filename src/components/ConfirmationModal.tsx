@@ -32,9 +32,9 @@ export const ActionConfirmationModal: React.FC<ActionConfirmationModalProps> = (
         <DialogContentText id="alert-dialog-description">{description}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose}>Відмінити</Button>
         <LoadingButton loading={loading} onClick={onConfirm} autoFocus color="error">
-          Confirm
+          Підтвердити
         </LoadingButton>
       </DialogActions>
     </Dialog>

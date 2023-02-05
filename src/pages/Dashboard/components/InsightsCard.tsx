@@ -32,7 +32,7 @@ export function InsightsCard({
       <Divider />
       <Box p={1}>
         <Button variant="text" endIcon={<ArrowForwardRoundedIcon />} onClick={onButtonClick}>
-          See all {buttonLabelEntity}
+          Дивитись усі {buttonLabelEntity}
         </Button>
       </Box>
     </Card>

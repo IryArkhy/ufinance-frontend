@@ -3,7 +3,7 @@ import axios, { AxiosError } from 'axios';
 import { getUserToken } from './localStorage';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: process.env.REACT_APP_BASE_URL,
 });
 
 axiosInstance.interceptors.request.use(

@@ -40,7 +40,11 @@ const NotificationProvider: FC<{ children?: React.ReactNode }> = ({ children }) 
   };
 
   const notifyError = (message: string) => {
-    setNotifState({ isVisible: true, message, severity: 'error' });
+    setNotifState({
+      isVisible: true,
+      message: message ?? 'Щось пішло не так. Спробуйте пізніше знову.',
+      severity: 'error',
+    });
   };
   const notifyInfo = (message: string) => {
     setNotifState({ isVisible: true, message, severity: 'info' });
@@ -50,6 +54,7 @@ const NotificationProvider: FC<{ children?: React.ReactNode }> = ({ children }) 
   };
 
   const handleClose = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { severity, ...rest } = initNotifState;
     setNotifState((prev) => ({ ...prev, ...rest }));
   };

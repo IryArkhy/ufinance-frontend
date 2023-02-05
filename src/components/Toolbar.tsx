@@ -22,9 +22,9 @@ export const Toolbar = React.memo(function Toolbar() {
   return (
     <Box mb={5} display="flex" justifyContent="flex-end" py={2}>
       <Box display="flex" alignItems="center" gap={2}>
-        <Typography variant="body2">Total balance</Typography>
+        <Typography variant="body2">Загальний баланс</Typography>
         {balance && (
-          <Tooltip title="Total balance in USD">
+          <Tooltip title="Загальний баланс в USD">
             <Typography
               variant="body2"
               color={balance.balance > 0 ? palette.success.light : palette.error.main}

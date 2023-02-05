@@ -17,6 +17,7 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { uk } from 'date-fns/locale';
 import { isEqual } from 'lodash';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -98,7 +99,7 @@ export function UpdateTransactionModal({
       setIsLoading(false);
     } else {
       await dispatch(fetchBalance());
-      notifySuccess('Updated');
+      notifySuccess('Транзакцію оновлено!');
       setIsLoading(false);
       onClose();
     }
@@ -108,7 +109,7 @@ export function UpdateTransactionModal({
     const amount = typeof values.amount === 'string' ? parseFloat(values.amount) : values.amount;
 
     if (isEqual(defaultValues, { ...values, amount })) {
-      notifyWarning('Please update values to submit changes!');
+      notifyWarning('Будь ласка, змініть інформацію, щоб надіслати зміни!');
       return;
     }
 
@@ -129,7 +130,7 @@ export function UpdateTransactionModal({
 
   return (
     <Dialog open={isOpen} onClose={onClose} fullWidth keepMounted={false}>
-      <DialogTitle>Update transaction</DialogTitle>
+      <DialogTitle>Оновити транзакцію</DialogTitle>
       <DialogContent>
         <Box width="100%" display="flex" flexDirection="column" gap={3} pt={2}>
           <Controller
@@ -149,7 +150,7 @@ export function UpdateTransactionModal({
             variant="caption"
             color={watchAccount.balance > 0 ? 'success.light' : 'error.light'}
           >
-            Current balance: {`${watchAccount.balance} ${watchAccount.currency}`}
+            Поточний баланс: {`${watchAccount.balance} ${watchAccount.currency}`}
           </Typography>
           <Controller
             name="account"
@@ -166,7 +167,7 @@ export function UpdateTransactionModal({
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
                   disableClearable
                   renderInput={(params) => (
-                    <TextField label="Target Account" {...params} size="small" required />
+                    <TextField label="Цільовий рахунок" {...params} size="small" required />
                   )}
                 />
               </FormControl>
@@ -188,7 +189,7 @@ export function UpdateTransactionModal({
                 <TextField
                   type="number"
                   size="small"
-                  label="Amount"
+                  label="Сума"
                   {...field}
                   required
                   error={fieldState.invalid}
@@ -209,10 +210,10 @@ export function UpdateTransactionModal({
             name="date"
             control={control}
             render={({ field }) => (
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={uk}>
                 <DateTimePicker
                   renderInput={(props) => <TextField {...props} />}
-                  label="Date Time"
+                  label="Дата і час"
                   disableFuture
                   {...field}
                 />
@@ -234,7 +235,7 @@ export function UpdateTransactionModal({
                       isOptionEqualToValue={(o, v) => isEqual(o, v)}
                       onChange={(_e, nextValue) => field.onChange(nextValue)}
                       renderInput={(params) => (
-                        <TextField label="Category" {...params} size="small" />
+                        <TextField label="Категорія" {...params} size="small" />
                       )}
                     />
                   </FormControl>
@@ -251,7 +252,9 @@ export function UpdateTransactionModal({
                       freeSolo
                       isOptionEqualToValue={(o, v) => isEqual(o, v)}
                       onChange={(_e, nextValue) => field.onChange(nextValue)}
-                      renderInput={(params) => <TextField label="Payee" {...params} size="small" />}
+                      renderInput={(params) => (
+                        <TextField label="Одержувач платежу" {...params} size="small" />
+                      )}
                     />
                   </FormControl>
                 )}
@@ -267,7 +270,7 @@ export function UpdateTransactionModal({
                       type="text"
                       size="small"
                       rows={3}
-                      label="Description"
+                      label="Опис"
                       {...field}
                     />
                   </FormControl>
@@ -295,7 +298,7 @@ export function UpdateTransactionModal({
                           />
                         ))
                       }
-                      renderInput={(params) => <TextField {...params} label="Tags" />}
+                      renderInput={(params) => <TextField {...params} label="Теґи" />}
                     />
                   </FormControl>
                 )}
@@ -308,7 +311,7 @@ export function UpdateTransactionModal({
             startIcon={isAllOptionsVisible ? <ExpandLessRounded /> : <ExpandMoreRounded />}
             onClick={() => setIsAllOptionsVisible((current) => !current)}
           >
-            {isAllOptionsVisible ? 'Show less' : 'Show more'}
+            {isAllOptionsVisible ? 'Показати більше опцій' : 'Сховати'}
           </Button>
         </Box>
       </DialogContent>

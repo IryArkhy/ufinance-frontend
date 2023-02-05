@@ -13,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
+import uk from 'date-fns/locale/uk';
 import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
@@ -66,7 +67,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
     } else {
       await dispatch(fetchBalance());
 
-      notifySuccess('Transaction deleted');
+      notifySuccess('Транзакцію видалено!');
       setIsConfirmationModalOpen(false);
     }
     setIsDeleteTransactionLoading(false);
@@ -87,18 +88,30 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
 
   const cardData = getCardData();
 
+  const getTransactionTypeTransalton = () => {
+    switch (transaction.type) {
+      case 'DEPOSIT':
+        return 'Депозит';
+
+      default:
+        return 'Зняття коштів';
+    }
+  };
+
   return (
     <Card>
       <CardContent>
         <Box display="flex" alignItems="center" mb={1}>
           <Box display="flex" alignItems="center" gap={1} flex={1}>
             <Typography variant="overline">
-              {format(new Date(transaction.date), 'dd MMMM yyyy, HH:mm')}
+              {format(new Date(transaction.date), 'dd MMMM yyyy, HH:mm', {
+                locale: uk,
+              })}
             </Typography>
 
             <Divider orientation="vertical" sx={{ height: 20 }} />
             <Typography variant="overline" color={cardData.color}>
-              {transaction.type}
+              {getTransactionTypeTransalton()}
             </Typography>
           </Box>
           <Box>
@@ -126,10 +139,10 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                   handleEditTransactionClick();
                 }}
               >
-                Edit
+                Редагувати
               </MenuItem>
               <MenuItem onClick={handleDeleteMenuItemClick}>
-                <Typography color="error.light">Delete</Typography>
+                <Typography color="error.light">Видалити</Typography>
               </MenuItem>
             </Menu>
           </Box>
@@ -148,7 +161,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                     fontWeight={600}
                     variant="body2"
                   >
-                    Category
+                    Категорія
                   </Typography>{' '}
                   <Typography variant="body2">{transaction.category?.name ?? '-'}</Typography>
                 </Box>
@@ -161,7 +174,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                     fontWeight={600}
                     variant="body2"
                   >
-                    Payee
+                    Отримувач платежу
                   </Typography>
                   <Typography variant="body2">{transaction.payee?.name ?? '-'}</Typography>
                 </Box>
@@ -174,7 +187,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                     fontWeight={600}
                     variant="body2"
                   >
-                    Description
+                    Опис
                   </Typography>
                   <Typography variant="body2">
                     {transaction.description ? transaction.description : '-'}
@@ -190,7 +203,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                       fontWeight={600}
                       variant="body2"
                     >
-                      Tags
+                      Теґи
                     </Typography>
                     <Box display="flex" alignItems="center" gap={2}>
                       {transaction.tags.map((tagOnTransaction) => (
@@ -210,7 +223,7 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
                 startIcon={isShowingMore ? <ExpandLessRounded /> : <ExpandMoreRounded />}
                 onClick={() => setIsShowingMore((current) => !current)}
               >
-                {isShowingMore ? 'Show less' : 'Show more'}
+                {isShowingMore ? 'Сховати' : 'Показати більше'}
               </Button>
             </Box>
           </Box>
@@ -232,8 +245,8 @@ export function TransactionCard({ transaction, accounts }: TransactionCardProps)
       <ActionConfirmationModal
         isOpen={isConfirmationModalOpen}
         onClose={() => setIsConfirmationModalOpen(false)}
-        title="Are you sure, you'd like to delete this transaction?"
-        description="This action will cause current account balance change."
+        title="Ви впевнені, що хочете видалити цю транзакцію?"
+        description="Ця дія призведе до зміни балансу поточного рахунку."
         onConfirm={deleteTransaction}
         loading={isDeleteTransactionLoading}
       />

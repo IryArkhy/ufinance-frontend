@@ -10,6 +10,7 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { uk } from 'date-fns/locale';
 import { isEqual } from 'lodash';
 import { Controller, UseFormReturn } from 'react-hook-form';
 
@@ -33,7 +34,7 @@ export type FormTransactionType = Omit<Transaction, 'type'> & {
 };
 
 export type TransactionFormProps = {
-  formData: UseFormReturn<TransactionFormValues, any>;
+  formData: UseFormReturn<TransactionFormValues>;
   isAllOptionsVisible: boolean;
 };
 
@@ -59,7 +60,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
         variant="caption"
         color={watchAccount.balance > 0 ? 'success.light' : 'error.light'}
       >
-        Current balance: {`${watchAccount.balance} ${watchAccount.currency}`}
+        Поточний баланс: {`${watchAccount.balance} ${watchAccount.currency}`}
       </Typography>
       <Controller
         name="account"
@@ -77,7 +78,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
               onChange={(_e, nextValue) => field.onChange(nextValue)}
               disableClearable
               renderInput={(params) => (
-                <TextField label="Target Account" {...params} size="small" required />
+                <TextField label="Цільовий рахунок" {...params} size="small" required />
               )}
             />
           </FormControl>
@@ -99,7 +100,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
             <TextField
               type="number"
               size="small"
-              label="Amount"
+              label="Сума"
               {...field}
               required
               error={fieldState.invalid}
@@ -123,10 +124,10 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
           required: true,
         }}
         render={({ field }) => (
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={uk}>
             <DateTimePicker
               renderInput={(props) => <TextField {...props} />}
-              label="Date Time"
+              label="Дата і час"
               disableFuture
               {...field}
             />
@@ -147,7 +148,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
                   freeSolo
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
-                  renderInput={(params) => <TextField label="Category" {...params} size="small" />}
+                  renderInput={(params) => <TextField label="Категорія" {...params} size="small" />}
                 />
               </FormControl>
             )}
@@ -163,7 +164,9 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
                   freeSolo
                   isOptionEqualToValue={(o, v) => isEqual(o, v)}
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
-                  renderInput={(params) => <TextField label="Payee" {...params} size="small" />}
+                  renderInput={(params) => (
+                    <TextField label="Одержувач платежу" {...params} size="small" />
+                  )}
                 />
               </FormControl>
             )}
@@ -174,14 +177,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
             control={control}
             render={({ field }) => (
               <FormControl>
-                <TextField
-                  multiline
-                  type="text"
-                  size="small"
-                  rows={3}
-                  label="Description"
-                  {...field}
-                />
+                <TextField multiline type="text" size="small" rows={3} label="Опис" {...field} />
               </FormControl>
             )}
           />
@@ -207,7 +203,7 @@ export function TransactionForm({ formData, isAllOptionsVisible }: TransactionFo
                       />
                     ))
                   }
-                  renderInput={(params) => <TextField {...params} label="Tags" />}
+                  renderInput={(params) => <TextField {...params} label="Теґи" />}
                 />
               </FormControl>
             )}

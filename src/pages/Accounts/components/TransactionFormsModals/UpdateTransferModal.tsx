@@ -15,6 +15,7 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { uk } from 'date-fns/locale';
 import { isEqual } from 'lodash';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -85,7 +86,7 @@ export function UpdateTransferModal({
       setIsLoading(false);
     } else {
       await dispatch(fetchBalance());
-      notifySuccess('Updated');
+      notifySuccess('Трансфер оновлено');
       setIsLoading(false);
       onClose();
     }
@@ -99,7 +100,7 @@ export function UpdateTransferModal({
       typeof values.toAmount === 'string' ? parseFloat(values.toAmount) : values.toAmount;
 
     if (isEqual(defaultValues, { ...values, fromAmount, toAmount })) {
-      notifyWarning('Please update values to submit changes!');
+      notifyWarning('Будь ласка, змініть інформацію, щоб надіслати зміни!');
       return;
     }
 
@@ -161,7 +162,7 @@ export function UpdateTransferModal({
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
                   renderInput={(params) => (
                     <TextField
-                      label="Sending Account"
+                      label="Рахунок для відправлення"
                       {...params}
                       size="small"
                       required
@@ -195,7 +196,7 @@ export function UpdateTransferModal({
                   onChange={(_e, nextValue) => field.onChange(nextValue)}
                   renderInput={(params) => (
                     <TextField
-                      label="Receiving Account"
+                      label="Рахунок отримання"
                       {...params}
                       size="small"
                       required
@@ -228,7 +229,7 @@ export function UpdateTransferModal({
                 <TextField
                   type="number"
                   size="small"
-                  label="From account"
+                  label="Cума з аккаунту"
                   {...field}
                   required
                   error={fieldState.invalid}
@@ -257,7 +258,7 @@ export function UpdateTransferModal({
                   <TextField
                     type="number"
                     size="small"
-                    label="To account"
+                    label="Сума на рахунок"
                     {...field}
                     required
                     InputProps={{
@@ -278,10 +279,10 @@ export function UpdateTransferModal({
             name="date"
             control={control}
             render={({ field }) => (
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={uk}>
                 <DateTimePicker
                   renderInput={(props) => <TextField {...props} />}
-                  label="Date Time "
+                  label="Дата і час"
                   {...field}
                 />
               </LocalizationProvider>
@@ -299,7 +300,7 @@ export function UpdateTransferModal({
                       type="text"
                       size="small"
                       rows={3}
-                      label="Description"
+                      label="Опис"
                       {...field}
                     />
                   </FormControl>
@@ -313,7 +314,7 @@ export function UpdateTransferModal({
             startIcon={isAllOptionsVisible ? <ExpandLessRounded /> : <ExpandMoreRounded />}
             onClick={() => setIsAllOptionsVisible((current) => !current)}
           >
-            {isAllOptionsVisible ? 'Show less' : 'Show more'}
+            {isAllOptionsVisible ? 'Показати більше опцій' : 'Сховати'}
           </Button>
         </Box>
       </DialogContent>

@@ -153,7 +153,7 @@ export function AccountsView() {
       <Toolbar />
       <Box width="100%" display="flex" flexDirection="column" gap={4}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">Regular Currency Accounts</Typography>
+          <Typography variant="h6">У національній валюті</Typography>
           <Button
             variant="contained"
             startIcon={<AddRounded />}
@@ -167,7 +167,7 @@ export function AccountsView() {
         {Boolean(accounts.data.length) && (
           <>
             <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h6">Transactions</Typography>
+              <Typography variant="h6">Транзакції</Typography>
               <Button
                 variant="contained"
                 disabled={accounts.data.length === 0}

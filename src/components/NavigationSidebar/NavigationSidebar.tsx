@@ -78,7 +78,7 @@ export function NavigationSidebar() {
           </ListItem>
           <ListItem>
             <Typography variant="overline" color={palette.grey[400]} fontWeight={600}>
-              pages
+              Розділи
             </Typography>
           </ListItem>
           {firstLevelItems.map(({ title, Icon, navigateTo }) => (

@@ -7,7 +7,6 @@ import {
   UpdatePasswordResponse,
   logIn,
   signUp as signUpRequest,
-  updatePassword,
 } from '../../lib/api/users';
 import { ErrorData, handleError } from '../../lib/api/utils';
 import axiosInstance from '../../lib/axios';
@@ -43,6 +42,7 @@ export const signUp = createAsyncThunk<
   }
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const fetchUser = createAsyncThunk<User, any, { rejectValue: ErrorData }>(
   'user/fetch',
   async (_, thunkApi) => {
@@ -62,8 +62,12 @@ export const changePassword = createAsyncThunk<
   { rejectValue: ErrorData }
 >('user/changePassword', async (data, thunkApi) => {
   try {
-    const res = await updatePassword(data);
-    return res;
+    const res = await axiosInstance.patch<UpdatePasswordResponse>('api/user/password', {
+      oldPassword: data.oldPassword,
+      newPassword: data.newPassword,
+    });
+
+    return res.data;
   } catch (error) {
     const errorPayload = handleError(error);
     return thunkApi.rejectWithValue(errorPayload);

@@ -36,7 +36,7 @@ export type AuthResponse = {
 };
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: process.env.REACT_APP_BASE_URL,
 });
 
 export const fetchUser = async (token: string) => {

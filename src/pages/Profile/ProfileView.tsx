@@ -21,6 +21,7 @@ import { PageWrapper, Toolbar } from '../../components';
 import { ErrorData } from '../../lib/api/utils';
 import { stringAvatar } from '../../lib/avatar';
 import { NotificationContext } from '../../lib/notifications';
+import { passwordRegex } from '../../lib/password';
 import { useDispatch, useSelector } from '../../redux/hooks';
 import { getUser } from '../../redux/user/selectors';
 import { changePassword } from '../../redux/user/thunks';
@@ -34,7 +35,7 @@ export function ProfileView() {
   const user = useSelector(getUser);
   const { notifyError, notifySuccess } = React.useContext(NotificationContext);
   const dispatch = useDispatch();
-  const { control, handleSubmit } = useForm<ChangePasswordFormValues>({
+  const { control, handleSubmit, reset } = useForm<ChangePasswordFormValues>({
     defaultValues: {
       oldPassword: '',
       newPassword: '',
@@ -62,7 +63,8 @@ export function ProfileView() {
     if (resultAction.meta.requestStatus === 'rejected') {
       notifyError((resultAction.payload as ErrorData).message);
     } else {
-      notifySuccess('Updated');
+      reset({ newPassword: '', oldPassword: '' });
+      notifySuccess('Пароль змінено!');
     }
   };
 
@@ -72,7 +74,7 @@ export function ProfileView() {
     <PageWrapper>
       <Toolbar />
       <Card sx={{ mb: 5 }}>
-        <CardHeader title={<Typography variant="h6">User Information</Typography>} />
+        <CardHeader title={<Typography variant="h6">Інформація користувача</Typography>} />
         <CardContent>
           <Box display="flex" gap={3}>
             <Avatar sx={{ ...avatarProps.sx, width: 100, height: 100, fontSize: '2rem' }}>
@@ -80,11 +82,11 @@ export function ProfileView() {
             </Avatar>
             <Box flex={1}>
               <Box display="flex" flexDirection="column" mb={2}>
-                <Typography color="GrayText">Email</Typography>
+                <Typography color="GrayText">Електронна пошта</Typography>
                 <Typography>{user.email}</Typography>
               </Box>
               <Box display="flex" flexDirection="column">
-                <Typography color="GrayText">Username</Typography>
+                <Typography color="GrayText">Нікнейм</Typography>
                 <Typography>{user.username}</Typography>
               </Box>
             </Box>
@@ -92,7 +94,7 @@ export function ProfileView() {
         </CardContent>
       </Card>
       <Card>
-        <CardHeader title={<Typography variant="h6">Manage profile</Typography>} />
+        <CardHeader title={<Typography variant="h6">Керування профілем</Typography>} />
         <CardContent>
           <Box width="100%" display="flex" flexDirection="column" gap={3}>
             <FormControl sx={{ gap: 2, width: '45%' }}>
@@ -100,16 +102,19 @@ export function ProfileView() {
                 control={control}
                 name="oldPassword"
                 rules={{
-                  required: true,
+                  required: "Це поле обов'язкове для заповнення.",
                 }}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <>
-                    <FormLabel>Change password</FormLabel>
+                    <FormLabel>Змінити пароль</FormLabel>
                     <TextField
-                      label="Old password"
+                      label="Поточний пароль"
                       autoComplete="current-password"
+                      required
                       type={isOldPasswordVisible ? 'text' : 'password'}
                       {...field}
+                      error={fieldState.invalid}
+                      helperText={fieldState.error ? fieldState.error.message : undefined}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -134,13 +139,21 @@ export function ProfileView() {
                 control={control}
                 name="newPassword"
                 rules={{
-                  required: true,
+                  required: "Це поле обов'язкове для заповнення.",
+                  pattern: {
+                    value: passwordRegex,
+                    message:
+                      'Пароль повинен містити хочаб 1 велику і 1 маленьку літери, 1 символ (!@#$&*_), 1 цифру, довжиною щонайменш у 8 символів.',
+                  },
                 }}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <TextField
-                    label="New password"
+                    label="Новий пароль"
                     type={isNewPasswordVisible ? 'text' : 'password'}
                     {...field}
+                    required
+                    error={fieldState.invalid}
+                    helperText={fieldState.error ? fieldState.error.message : undefined}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -166,7 +179,7 @@ export function ProfileView() {
                   loading={isLoading}
                   variant="contained"
                 >
-                  Submit
+                  Змінити
                 </LoadingButton>
               </Box>
             </FormControl>

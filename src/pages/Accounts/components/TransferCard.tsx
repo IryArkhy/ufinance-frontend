@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { format } from 'date-fns';
+import { uk } from 'date-fns/locale';
 import React from 'react';
 
 import { ActionConfirmationModal } from '../../../components/ConfirmationModal';
@@ -65,7 +66,7 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
     } else {
       await dispatch(fetchBalance());
 
-      notifySuccess('Transfer deleted');
+      notifySuccess('Переказ видалено!');
       setIsConfirmationModalOpen(false);
     }
     setIsDeleteTransferLoading(false);
@@ -94,12 +95,14 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
         <Box display="flex" alignItems="center" mb={1}>
           <Box display="flex" alignItems="center" gap={1} flex={1}>
             <Typography variant="overline">
-              {format(new Date(transaction.date), 'dd MMMM yyyy, HH:mm')}
+              {format(new Date(transaction.date), 'dd MMMM yyyy, HH:mm', {
+                locale: uk,
+              })}
             </Typography>
 
             <Divider orientation="vertical" sx={{ height: 20 }} />
             <Typography variant="overline" color={cardData.color}>
-              {transaction.type}
+              Переказ
             </Typography>
           </Box>
           <Box>
@@ -127,10 +130,10 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
                   handleEditTransferClick();
                 }}
               >
-                Edit
+                Редагувати
               </MenuItem>
               <MenuItem onClick={handleDeleteMenuItemClick}>
-                <Typography color="error.light">Delete</Typography>
+                <Typography color="error.light">Видалити</Typography>
               </MenuItem>
             </Menu>
           </Box>
@@ -145,7 +148,7 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
             fontWeight={600}
             variant="body2"
           >
-            {isSendingAccountCard ? 'To account' : 'From account'}
+            {isSendingAccountCard ? 'На рахунок' : 'З рахунку'}
           </Typography>
           <Typography variant="body2">
             {isSendingAccountCard ? transaction.toAccount.name : transaction.fromAccount.name}
@@ -165,7 +168,7 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
                     fontWeight={600}
                     variant="body2"
                   >
-                    Description
+                    Опис
                   </Typography>
                   <Typography variant="body2">
                     {transaction.description ? transaction.description : '-'}
@@ -178,7 +181,7 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
                 startIcon={isShowingMore ? <ExpandLessRounded /> : <ExpandMoreRounded />}
                 onClick={() => setIsShowingMore((current) => !current)}
               >
-                {isShowingMore ? 'Show less' : 'Show more'}
+                {isShowingMore ? 'Сховати' : 'Показати більше'}
               </Button>
             </Box>
           </Box>
@@ -200,8 +203,8 @@ export function TransferCard({ transaction, selectedAccount, accounts }: Transfe
       <ActionConfirmationModal
         isOpen={isConfirmationModalOpen}
         onClose={() => setIsConfirmationModalOpen(false)}
-        title="Are you sure, you'd like to delete this transfer?"
-        description="This action will case the balance change on both accounts of this transfer."
+        title="Ви впевнені, що хочете видалити цей переказ?"
+        description="Ця дія призведе до зміни балансу на обох рахунках цього переказу."
         onConfirm={deleteTransfer}
         loading={isDeleteTransferLoading}
       />

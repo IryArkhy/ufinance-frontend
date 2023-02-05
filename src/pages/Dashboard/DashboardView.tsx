@@ -14,6 +14,7 @@ import {
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowsProp } from '@mui/x-data-grid';
 import { ApexOptions } from 'apexcharts';
 import { format } from 'date-fns';
+import { uk } from 'date-fns/locale';
 import React from 'react';
 import Chart from 'react-apexcharts';
 import { useNavigate } from 'react-router-dom';
@@ -71,8 +72,10 @@ export function DashboardView() {
 
   const handleNavigateToAccounts = () => navigate(ROUTES.ACCOUNTS);
 
-  const handleCloseCreateTransactionModal = async () => {
-    await loadInsights();
+  const handleCloseCreateTransactionModal = async (isCancel?: boolean) => {
+    if (!isCancel) {
+      await loadInsights();
+    }
     setIsCreateTransactionModalOpen(false);
   };
 
@@ -92,14 +95,14 @@ export function DashboardView() {
     },
     yaxis: {
       title: {
-        text: 'Balance, $',
+        text: 'Баланс, $',
       },
     },
     xaxis: {
       categories: statistics.data ? statistics.data.balanceData.date : [],
       type: 'datetime',
       title: {
-        text: 'Date',
+        text: 'Дата і час',
         offsetY: 70,
       },
     },
@@ -107,7 +110,7 @@ export function DashboardView() {
 
   const chartSeries = [
     {
-      name: 'Balance change',
+      name: 'Зміна балансу',
       data: statistics.data ? statistics.data.balanceData.balance : [],
     },
   ];
@@ -123,7 +126,9 @@ export function DashboardView() {
   const rows: GridRowsProp =
     transactions.data?.transactions.map((t) => ({
       id: t.id,
-      date: format(new Date(t.date), 'dd MMMM yyyy, HH:mm'),
+      date: format(new Date(t.date), 'dd MMMM yyyy, HH:mm', {
+        locale: uk,
+      }),
       amount: t,
       account: t.fromAccount,
       category: t.category?.name,
@@ -133,7 +138,7 @@ export function DashboardView() {
   const columns: GridColDef[] = [
     {
       field: 'account',
-      headerName: 'Account',
+      headerName: 'Рахунок',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
       renderCell: ({ value }: GridRenderCellParams<Account>) => {
@@ -141,26 +146,26 @@ export function DashboardView() {
         return (
           <Box display="flex" gap={2} alignItems="center">
             <Icon sx={{ color }} />
-            <Typography variant="body2">{value?.name ?? 'Account'}</Typography>
+            <Typography variant="body2">{value?.name ?? 'Рахунок'}</Typography>
           </Box>
         );
       },
     },
     {
       field: 'date',
-      headerName: 'Date',
+      headerName: 'Дата і час',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
     },
     {
       field: 'category',
-      headerName: 'Category',
+      headerName: 'Категорія',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
     },
     {
       field: 'amount',
-      headerName: 'Price',
+      headerName: 'Сума',
       flex: 1,
       headerClassName: 'lastTransactionsTableHeader',
       align: 'center',
@@ -169,7 +174,7 @@ export function DashboardView() {
         return (
           <Typography variant="body2" fontWeight={600} color={amountData?.color ?? 'GrayText'}>
             {amountData && amountData.sign}
-            {amountData ? amountData.amount : 'No data'}
+            {amountData ? amountData.amount : 'Немає даних'}
           </Typography>
         );
       },
@@ -182,7 +187,7 @@ export function DashboardView() {
 
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4" fontWeight={600}>
-          Overview this months
+          Короткий огляд цього місяця
         </Typography>
 
         <Button
@@ -204,31 +209,31 @@ export function DashboardView() {
             <Box flex={1}>
               <InsightsCard
                 imgSrc={Deposit}
-                title="Total Income"
+                title="Загальний надходження"
                 indicator={`${Math.round(
                   overview.data?.totalExpensesAndEarnings.earningsInUah ?? 0,
                 ).toLocaleString()} ₴`}
-                buttonLabelEntity="transactions"
+                buttonLabelEntity="транзакції"
                 onButtonClick={handleNavigateToAccounts}
               />
             </Box>
             <Box flex={1}>
               <InsightsCard
                 imgSrc={Withdrawal}
-                title="Total expences"
+                title="Загальні витрати"
                 indicator={`${Math.round(
                   overview.data?.totalExpensesAndEarnings.expensesInUah ?? 0,
                 ).toLocaleString()} ₴`}
-                buttonLabelEntity="transactions"
+                buttonLabelEntity="транзакції"
                 onButtonClick={handleNavigateToAccounts}
               />
             </Box>
             <Box flex={1}>
               <InsightsCard
                 imgSrc={MoneyBag}
-                title="Transactions"
+                title="Кількість транзакцій"
                 indicator={(overview.data?.transactionsCount ?? 0).toString()}
-                buttonLabelEntity="transcations"
+                buttonLabelEntity="транзакції"
                 onButtonClick={handleNavigateToAccounts}
               />
             </Box>
@@ -243,17 +248,18 @@ export function DashboardView() {
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <CardHeader
-                  title={<Typography variant="h6">Balance change</Typography>}
+                  title={<Typography variant="h6">Зміна балансу</Typography>}
                   subheader={
                     <Typography variant="body2" color="GrayText">
-                      Based on the last 30 days
+                      На основі транзакцій за поточний місяць
                     </Typography>
                   }
                 />
 
                 {chartSeries[0].data.length === 0 ? (
                   <Typography color="GrayText">
-                    No data available because you dont have transactions this month. Create some.
+                    Немає даних, тому що у вас немає транзакцій у цьому місяці. Створіть декілька
+                    для отримання статистики.
                   </Typography>
                 ) : (
                   <Chart options={chartOption} series={chartSeries} type="line" width="100%" />
@@ -263,16 +269,17 @@ export function DashboardView() {
             <Card sx={{ flex: 1 }}>
               <CardContent>
                 <CardHeader
-                  title={<Typography variant="h6">Spendings by category</Typography>}
+                  title={<Typography variant="h6">Витрати за категоріями</Typography>}
                   subheader={
                     <Typography variant="body2" color="GrayText">
-                      Based on the last 30 days
+                      На основі транзакцій за поточний місяць
                     </Typography>
                   }
                 />
                 {donutChartSeries.length === 0 ? (
                   <Typography color="GrayText">
-                    No data available because you dont have transactions this month. Create some.
+                    Немає даних, тому що у вас немає транзакцій у цьому місяці. Створіть декілька
+                    для отримання статистики.
                   </Typography>
                 ) : (
                   <Chart
@@ -290,10 +297,10 @@ export function DashboardView() {
       <Box>
         <Card sx={{ width: '100%' }}>
           <CardHeader
-            title={<Typography variant="h6">Transactions History</Typography>}
+            title={<Typography variant="h6">Історія Транзакцій</Typography>}
             subheader={
               <Typography variant="body2" color="GrayText">
-                The most recent transactions
+                Нещодавні транзакції
               </Typography>
             }
           />
@@ -310,7 +317,7 @@ export function DashboardView() {
                 components={{
                   NoRowsOverlay: () => (
                     <Typography variant="body2" color="GrayText" textAlign="center" mt={4}>
-                      No transactions current month.
+                      У поточному місяці транзакцій не було.
                     </Typography>
                   ),
                 }}
@@ -340,7 +347,7 @@ export function DashboardView() {
                   endIcon={<ArrowForwardRoundedIcon />}
                   onClick={handleNavigateToAccounts}
                 >
-                  See more
+                  Дивитись усі
                 </Button>
               </Box>
             </>
