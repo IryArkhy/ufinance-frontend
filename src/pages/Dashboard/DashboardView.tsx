@@ -27,6 +27,7 @@ import { Account } from '../../lib/api/accounts';
 import { Transaction } from '../../lib/api/transactions';
 import { ROUTES } from '../../lib/router';
 import { getTransactionAmountData } from '../../lib/transactions';
+import { getAccounts } from '../../redux/accounts/selectors';
 import { fetchAccounts } from '../../redux/accounts/thunks';
 import { useDispatch, useSelector } from '../../redux/hooks';
 import { getOverview, getRecentTransactions, getStatistics } from '../../redux/insights/selectors';
@@ -44,6 +45,7 @@ import { ChartsLoader } from './components/ChartsLoader';
 export function DashboardView() {
   const { palette } = useTheme();
   const dispatch = useDispatch();
+  const accounts = useSelector(getAccounts);
   const overview = useSelector(getOverview);
   const statistics = useSelector(getStatistics);
   const transactions = useSelector(getRecentTransactions);
@@ -182,9 +184,11 @@ export function DashboardView() {
         <Typography variant="h4" fontWeight={600}>
           Overview this months
         </Typography>
+
         <Button
           variant="contained"
           color="secondary"
+          disabled={accounts.data.length === 0}
           onClick={() => setIsCreateTransactionModalOpen(true)}
           startIcon={<AddRounded fontSize="small" />}
         >

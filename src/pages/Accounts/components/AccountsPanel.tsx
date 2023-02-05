@@ -2,8 +2,10 @@ import { Box, Typography } from '@mui/material';
 import React from 'react';
 
 import { Account } from '../../../lib/api/accounts';
+import { setSelectedAccount } from '../../../redux/accounts/accountsSlice';
 import { getAccounts, getSelectedAccount } from '../../../redux/accounts/selectors';
-import { useSelector } from '../../../redux/hooks';
+import { fetchTransactions } from '../../../redux/accounts/thunks';
+import { useDispatch, useSelector } from '../../../redux/hooks';
 import { groupAccountsByType } from '../utils';
 
 import { AccountCard } from './AccountCard';
@@ -15,6 +17,7 @@ interface AccountsPanelProps {
 
 export function AccountsPanel({ onSelectAccount }: AccountsPanelProps) {
   const accounts = useSelector(getAccounts);
+  const dispatch = useDispatch();
   const selectedAccount = useSelector(getSelectedAccount);
   const [accountsByType, setAccountsByType] = React.useState<{
     crypto: Account[];
@@ -27,6 +30,16 @@ export function AccountsPanel({ onSelectAccount }: AccountsPanelProps) {
       setAccountsByType(groupedAccounts);
     }
   }, [accounts.data]);
+
+  React.useEffect(() => {
+    if (!selectedAccount) {
+      if (accountsByType.regular.length) {
+        dispatch(setSelectedAccount(accountsByType.regular[0]));
+      } else if (accountsByType.crypto.length) {
+        dispatch(setSelectedAccount(accountsByType.crypto[0]));
+      }
+    }
+  }, [accountsByType]);
 
   if (accounts.loading === 'pending') {
     return <AccountsLoader />;

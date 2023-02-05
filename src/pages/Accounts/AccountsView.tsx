@@ -101,11 +101,10 @@ export function AccountsView() {
   }, []);
 
   React.useEffect(() => {
-    if (selectedAccount) {
-      dispatch(resetTransactions());
+    if (selectedAccount && transactions.data.length === 0) {
       loadAccountTransactions(selectedAccount.id, undefined, 10);
     }
-  }, [selectedAccount]);
+  }, [selectedAccount, transactions.data.length]);
 
   const handleLoadMore = async () => {
     if (selectedAccount && transactionsCursor !== undefined) {
